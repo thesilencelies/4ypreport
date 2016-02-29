@@ -1,0 +1,69 @@
+\section{Literature Review}
+%this will detail all the prior work we're building on here.
+This section details the mathematical framework and previous research on which this project was based.
+\subsection{Reinforcement Learning}
+Reinforcement learning is %overview what it is
+
+Reinforcement learning is
+
+ ``a technique where an agent attempts to maximise it's reward by repeated interactions with a complex uncertain environment.''\footnote{taken from \cite{Sutton:1998:IRL:551283}}
+
+A MDP is a discrete time stochastic control process.
+
+\begin{figure}
+\input{diagrams/RLsimple}
+\end{figure}
+
+\begin{itemize}
+\item Value function
+\item Q function
+\begin{itemize}
+\item On Policy
+\item Off Policy
+
+\end{itemize}
+
+\end{itemize}
+
+
+\subsubsection{Temporal Difference Methods}
+\begin{itemize}
+%\item Monte Carlo Methods
+%\begin{equation*}
+%V(s) = V(s) + \alpha ( \bar{r} - V(s) )
+%\end{equation*}
+
+\item Temporal Difference methods
+
+\begin{itemize}
+\item TD(0)
+\begin{equation*}
+V(s_n) = V(s_n) + \alpha ( \gamma V(s_{n+1}) + r - V(s_n) )
+\end{equation*}
+\item TD$(\lambda)$
+\begin{equation*}
+R_t^\lambda = (1 - \lambda) \sum_{n = 1}^\infty \lambda^{n-1} R_t^{(n)}
+\end{equation*}
+\begin{equation*}
+V(s_n) = V(s_n) + \alpha ( R_t^\lambda - V(s_n) )
+\end{equation*}
+
+\end{itemize}
+\end{itemize}
+
+
+\subsubsection{Policy Gradient Methods}
+REINFORCE
+Updates the parameters of the function approximation directly
+\begin{equation*}
+\nabla_\theta J = \frac{1}{M}\sum_{i=1}^M\sum_{t=1}^T\nabla_\theta  \text{log}\pi (a_t^i | s_{1:t}^i ; \theta)(R^i - b_t)
+\label{eq:1}
+\end{equation*}
+
+\subsection{Deep Q-Learning}
+
+\subsection{Recurrent Models of Visual Attention}
+
+\subsection{Deterministic Policy Gradient} %this will probably actually be embedded in the maths above
+
+\subsection{Asynchronous Methods for Deep Reinforcement Learning}

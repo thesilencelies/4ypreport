@@ -1,0 +1,34 @@
+\begin{tikzpicture}[ node distance = 1cm, > =  stealth,
+%define the style for each of the nodes here
+stage/.style={
+% The shape:
+rectangle,minimum size=6mm,rounded corners=2mm,
+% The rest
+very thick,draw=black!50, text = black!90,
+top color=white,bottom color=black!20},
+%the style for the highlighted node - change the term in square brackets to this to change the node to this
+highlight/.style={
+% The shape:
+rectangle,minimum size=6mm,rounded corners=2mm,
+% The rest
+very thick,draw=black!50,
+top color=yellow!10,bottom color=yellow!40},
+%the style for the info boxes on the right
+info/.style={
+% The shape:
+rectangle,minimum size=6mm,rounded corners=2mm,
+%text width and the bullet points
+ text width = 3.5cm,
+% The rest
+very thick,draw=black!40,
+top color=white,bottom color=yellow!20}
+]
+%create the nodes and link them with arrows
+\node (start) [stage, label = V] at (0,0){State};
+\node (s2) [highlight] [right = of start, label = Q] {Action}
+	edge [<-] (start);
+\node (s3) [stage] [below =  of s2] {Environment}
+	edge [<-](s2)
+	edge [->,bend left = 40] node[left] {reward} (start);
+	
+\end{tikzpicture}

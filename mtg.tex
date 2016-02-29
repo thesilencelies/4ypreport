@@ -1,4 +1,4 @@
- \subsection{Magic: the Gathering}
+ \section{Magic: the Gathering}
   The particular game type this project was chosen for was collectible card games, in particular starting with Magic: the Gathering (MtG). These games provide a number of interesting and difficult challenges for AI: uncertain information, stochastic results, variable action spaces, along with additional opportunity for further depth should deck building also be considered. They are also turn based and don't require a physics engine, so they can run through many iterations of play quickly. Of these, MtG was chosen as it represents both a significant breadth of possibilities and different interactions without excessive card complexity or specificity and it has a more approachable learning curve than most. Hearthstone was considered, but a suitable emulator was hard to find due to the copyright issues. 
   \subsection{Aims}
   This project aims to produce an architecture that can learn to play at or around human competency trading card games. Ideally this would involve use of novel techniques that could find other use as well.
@@ -14,17 +14,7 @@
     \subsection{Preliminary Development}
       As an initial test of the neural network architecture with reinforcement learning, a simple maze enviroment was made. Currently the agent is not converging to a solution, and so the details of the implimentation are being looked at.
 
-  \section{Plan Going Forwards}
+  \section{Initial Changes}
   To get a firmer grip on reinforcement learning techniques, the maze agent will be tested with a number of tabular methods as well as the current function approximation basede technique.Then the structure for the preliminary reinforcement learning agent to play MtG will be made. Initially it will only choose what card to play, then other play decisions. It's likely a na\"\i eve approach won't be sufficient, so a number of possible improvements are on the boards, with more to be considered:
-\begin{itemize}
-  \item Learn play from observing opponent's moves
-  \item Replace simple matrix of present entities with a conv net that observes features from the cards
-  \item learning play for each area of card type one at a time iteratively
-  \item Double Q-learning and similar technical improvements
-\end{itemize}
-Furthermore, several important areas of improvement in performance will be looked at:
-\begin{itemize}
-  \item Considering similarity between cards
-  \item Learning good play/deckbuilding from the internet
-  \item Use of other types of learning than reinforcement learning
-\end{itemize}
+
+\section{Final Assessment of Feasibility}

@@ -1,0 +1,42 @@
+\begin{tikzpicture}[ node distance = 0.8cm, > =  stealth]
+\def \shift{0.7}
+\def \roundwidth{0.65cm}
+%create the nodes and link them with arrows
+\node (ht1) [] at (0,0){$h_{t-1}$};
+\node (jt) [coordinate, right of =  ht1, xshift = \shift cm] {}
+	edge[-](ht1);
+\node (It) [rectangle, draw, minimum width = 1cm, above = of jt] {$\text{I}_t$}
+	edge[-](jt);
+\node (Ft1) [rectangle, draw, fill = black!20, minimum width = 1cm, above = of It] {$f(\boldsymbol{x}_{t-1})$}
+	edge[->](It);
+\node (mt1) [left of = It, xshift = -\shift cm] {$M_{t-1}$}
+	edge [->] (It);
+\node (xt1) [left of = Ft1, xshift = -\shift cm] {$\boldsymbol{x}_{t-1}$}
+	edge [->] (Ft1);
+\node (ht) [rectangle, draw, text width = \roundwidth ,minimum height = 2.5cm, xshift = 0.5cm, right = of jt] {$h_t$}
+	edge [<-] (jt);
+\node (mt) [above = of ht,  circle, draw, text width =\roundwidth] {$M_t$}
+	edge [<-] (It.east);
+\node (Lt) [below = of ht, rectangle, minimum width = 1.3cm , draw] {$L_t$}
+	edge[<-] (ht);
+\node (xt) [below = of Lt, circle, draw, text width =\roundwidth] { $\boldsymbol{x}_{t}$}
+	edge [<-] (Lt);
+\node (jt) [coordinate, right of =  ht, xshift = 1.4 cm] {}
+	edge[-](ht);
+\node (It) [rectangle, draw, minimum width = 1cm, above = of jt] {$\text{I}_{t+1}$}
+	edge[-](jt);
+\node (Ft) [rectangle, draw, fill = black!20, minimum width = 1cm, above = of It] {$f(\boldsymbol{x}_{t})$}
+	edge[->](It);
+\node (ht) [rectangle, draw, minimum height = 2.5cm, text width =\roundwidth, xshift = 0.5cm, right = of jt] {$h_{t+1}$}
+	edge [<-] (jt);
+\node (mtp) [above = of ht,  circle, draw, text width =\roundwidth] {$M_{t+1}$}
+	edge [<-] (It.east);
+\node (Lt) [below = of ht, rectangle, minimum width = 1.3cm , draw] {$L_{t+1}$}
+	edge[<-] (ht);
+\node (xtp) [below = of Lt, circle, draw,text width =\roundwidth] { $\boldsymbol{x}_{t+1}$}
+	edge [<-] (Lt);
+\node [right of = ht, xshift = \shift cm] {}
+	edge [<-] (ht);
+\draw (mt) [->] -> (It.west);
+\draw [->, dashed] (xt.east) to[  out =0, in =180] (Ft.west);
+\end{tikzpicture}
