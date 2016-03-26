@@ -1,20 +1,72 @@
+ 
+ 
  \section{Magic: the Gathering}
-  The particular game type this project was chosen for was collectible card games, in particular starting with Magic: the Gathering (MtG). These games provide a number of interesting and difficult challenges for AI: uncertain information, stochastic results, variable action spaces, along with additional opportunity for further depth should deck building also be considered. They are also turn based and don't require a physics engine, so they can run through many iterations of play quickly. Of these, MtG was chosen as it represents both a significant breadth of possibilities and different interactions without excessive card complexity or specificity and it has a more approachable learning curve than most. Hearthstone was considered, but a suitable emulator was hard to find due to the copyright issues. 
-  \subsection{Aims}
-  This project aims to produce an architecture that can learn to play at or around human competency trading card games. Ideally this would involve use of novel techniques that could find other use as well.
-  \subsection{Goals}
-  \begin{itemize}
-    \item Produce an architecture that can learn to play MtG to an acceptable level of competency with a given deck
-    \item Produce an architecture, possibly using the above architecture, that can produce and improve decks of it's own and learn to adapt to changes in metagame.
-    \item generalise this architecture to be able to learn and play other card games
-  \end{itemize}
-  \section{Completed Work}
-    \subsection{Initial Setup}
-      A suitable open source emulation environment for playing MtG was identified, and modifications were made to it to allow the learned AI to be used in it and trained agains the extant rules based AI. Neural Networks libraries for java that use the GPU were installed and unit tested. An overview of AI techniques and the particulars of standard reinforcement learning algorithms were read. The exact state size was considered, and some additional restrictions were made on the type of cards that would be used within MtG's 15,000 card pool to reduce the initial complexity.
-    \subsection{Preliminary Development}
-      As an initial test of the neural network architecture with reinforcement learning, a simple maze enviroment was made. Currently the agent is not converging to a solution, and so the details of the implimentation are being looked at.
+  The particular game type that was chosen was a collectible card game called Magic: the Gathering (MtG). This type of game provide a number of interesting and difficult challenges for AI: uncertain information, stochastic results, variable action spaces, along with additional opportunity for further depth should deck building also be considered. They are also turn based and don't require a physics engine, so they can run through many iterations of play quickly. MtG was chosen in particular as it represents both a significant breadth of possibilities and different interactions without excessive card complexity or specificity and it has a more approachable learning curve than most for human players. Hearthstone was considered, but a suitable emulator was hard to find due to the copyright issues. 
+ \subsection{Initial Setup}
 
-  \section{Initial Changes}
-  To get a firmer grip on reinforcement learning techniques, the maze agent will be tested with a number of tabular methods as well as the current function approximation basede technique.Then the structure for the preliminary reinforcement learning agent to play MtG will be made. Initially it will only choose what card to play, then other play decisions. It's likely a na\"\i eve approach won't be sufficient, so a number of possible improvements are on the boards, with more to be considered:
+  
+      A suitable open source emulation environment for playing MtG was identified, and modifications were made to it to allow the learned AI to be used in it and trained against the extant rules based AI. Neural Networks libraries for java that use the GPU were installed and unit tested. An overview of AI techniques and the particulars of standard reinforcement learning algorithms were read.
+      
+One significant factor that affects learning is the size of the state and action space, and MtG does also include many cards with unique and complex interactions, so some additional restrictions were made on the type of cards that would be used within MtG's 15,000 card pool to reduce the initial complexity. More specifically, it was decided that it would just learn to play with basic lands (the games resource type), what are termed ``french vanilla'' creatures (the fundamental unit of gameplay), that is creatures with no extra rules text beyond one of a standard set of keywords, and a carefully chosen set of unconditional removal spells so that it has a decent chance of learning something that would generalise. Other options were also considered, such as limiting the card pool to one of the standarised collections of cards used for competative play (for example Standard, which uses cards from the past 5/6 sets released) and allowing it to learn the specifics for each card there. However, it was unclear how to then shape it's generalisation well, and the na\i\''eve implimentation of that would have a state size of $O(n^n)$. 
 
-\section{Final Assessment of Feasibility}
+The first relevant challenge that was faced on  this was how to define the state space well. The agent had access to the internal state of the game, which would be necesarry for it to make any kind of sensible decision, and is roughly equivalent to it learning about the state of the game from the screen, but without the enourmous overheads in training time. However, the conceptual representation of the state space is not immdeiately ameniable to use with neural networks - there is an unbounded number of possible entities that could exist, each of which could have their own unique properties, which are represented in the engine as a string of text. Also, the ordering is irrelevant - the only spatial information that matters is which player they belong to. Furthermore, the situation depends heavily on what specific cards are in the players hands, and what cards they have left that they can draw. The content of the opponent's hands are unknown to the agent, so only the quantity is relevant for defining the statespace. Additional complexity occurs in the fact that players can play cards in response to the opponents cards that will resolve first, meaning that the state also has to consider what cards both players have played that have not yet resolved and what, of the unboundeded set of cards already in play, if any, they are targeting.
+
+In order to simplify this, as well as helping the learning to generalise well, it was decided to use a state value based RL system rather than Q values, that is learn how ``good'' any particular state is, instead of how good any particular action is in any particular state. Then, the state could be further simplified by only considering the creatures on the board and a set of relevant hand picked features from the total gamestate (life total, available mana, cards in hand, phase). This is still an unbounded set, but due to the restriction of the cards to ``french vanilla'', the featureset of each creature is a fixed number of indicator variables and three natural numbers. These features could then either be passed through an evaluation network then pooled, or fed into a recurrent nerual network to produce an output that a neural network can learn with. 
+
+ In order for this to be used for control, a model of each state transition from an action has to be used, or some form of actor-critic method created. Fortunately, already within the game engine was an option for the AI to model the results of it's actions and choose according to a heuristic score on the resulting states. So this was simply commandeered, with the heuristic score replaced with the value output of the learned network.
+ 
+ All of this produces an architecture as shown in figure~\ref{fig:mtgarch} training with the algorithm in \ref{alg:mtgval}
+  \begin{figure}[htbf]
+\input{diagrams/MTGArch.tex}
+\caption{Architecture for the Magic: the Gathering playing agent}
+\label{fig:mtgarch}
+\end{figure}
+
+ \begin{figure}[htbf]
+ \begin{algorithmic}
+ \State $V(s; \theta) \mapsto \mathbb{R} $
+ \Repeat
+    \State Pick some initial state $s_i$
+    \Repeat	
+     \State produce a list of actions $\mathbf{a}$ for $s_i$
+     \For{ $a$ in $\mathbf{a}$}
+     	\State simulate transition $s' \gets T(s_i, a)$
+     	\If{$V(s' ; \theta) > r_{max}$}
+     		\State $a_{max} \gets a $
+     		\State $r_{max} \gets V(s';\theta)$
+     	\EndIf
+     \EndFor
+    \State with $P(\epsilon)$ take action $a_{max}$ 
+    \State else take action chosen uniformly from $\mathbf{a}$
+    \State waith for ingame stack to complete
+    \State observe new state $s_{i+1}$
+    \If {$s_{i+1}$ is terminal}
+    	\State $r \gets \begin{cases}
+			1 & win \\
+			-1 & loss \\
+			\end{cases} $
+    \Else
+    	\State $r \gets 0$
+    \EndIf
+    \State store transition $\{s_i , s_{i+1}, r\}$ in $Replay$
+    \State select random batch of transitions $\mathbf{B}$ from $Replay$
+    \For{ $s_b, s_{b+1}, r_b$ in $\mathbf{B}$}
+    	\State $y_b = r_b + \gamma V(s_{b+1} ; \theta ')$
+    	\State perform gradient descent step on $(y_b - V(s_b; \theta)^2$ with respect to $\theta$
+    \EndFor 
+    \Until{$s_i$ is terminal} 
+    \State every $c$ steps $\theta ' \gets \theta$
+ \Until{Max epochs}
+ \end{algorithmic}
+ 
+\caption{Value iteration algorithm for MtG agent}
+ \label{alg:mtgval}
+\end{figure}
+ 
+
+ \subsubsection{Results from Initial Setup}
+A number of practical issues plagued the initial run-throughs of this agent. There turns out to be a memory leak within the emulator used for training the AI, so batches of experiences of sufficient size couldn't be gathered to train the agent with. Furthermore, for the initial  behaviour it evaluated every state as being equal, for which the default behaviour was to do nothing, which is probably sensible but hampers learning. So it was adjusted to instead pick one of the highest valued actions at random. 
+
+With all of these things having been dealt with, it still wasn't performing very well - it wasn't at all clear that the agent learned anything useful, as it's win rate never improved, and when tested against a human player it's actions seemed entirely random. These issues can probably be ascribed to it's inability to clearly discern the state space, as the max/sum pooling inherently carries a lot of data loss, and it might not be able to tell the difference between importantly different states.
+
+The way to fix this issue would be to replace the pooling with recurrent nerual networks, which are able to take sequences of any given length and turn them into a set of features. However, the state space would continue to be very complicated. Another possible improvement to the learning would be to treat the opponent's actions as observations of off policy transitions, which could allow it to explore useful areas of the state space much more quickly, particularly if it is losing most of it's early games.

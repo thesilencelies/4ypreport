@@ -1,0 +1,66 @@
+\begin{tikzpicture}[ node distance =1cm, > =  stealth, hv path/.style={to path={-| (\tikztotarget)}}, vh path/.style={to path={|- (\tikztotarget)}},
+layer/.style={ rectangle, draw, minimum width  = 1cm, minimum height = 2cm },
+biglayer/.style={ rectangle, draw, minimum width  = 1cm, minimum height = 5cm }]
+
+\node (cards) [layer] at (0,0) {cards};
+\node (cfeat) [layer, right = of cards] {}
+	edge [<-] (cards); 
+\node (can)[draw, dashed, red, fit = (cards) (cfeat), label = {[name = lab1]for each of their cards}] {};
+
+\node (sum) [layer, right = of cfeat] {sum}
+	edge [<-] (cfeat);
+\node (max) [layer, above = of sum] {max}
+	edge [<-] (cfeat);
+\node (sfeat) [layer, below = of sum]{};
+\node (gstat) [left = of sfeat] {other game data}
+	edge [->] (sfeat);
+\node (pfeat) [biglayer, right = of sum] {}
+	edge [<-] (max)
+	edge [<-] (sum)
+	edge [<-] (sfeat);
+\node [draw, dashed, red, fit = (lab1)(cards) (cfeat) (can) (max) (sum) (sfeat) (gstat) (pfeat), label = 60: for each player ] {};
+
+%circles for cfeat
+\node (circ) [circle, draw, above of =  cfeat, node distance = 0.6cm] {};
+\node (circ) [circle, draw, below of = circ, node distance = 0.4cm] {};
+\node (circ) [circle, draw, below of = circ, node distance = 0.4cm] {};
+\node (circ) [circle, draw, below of = circ, node distance = 0.4cm] {};
+
+%circles for sfeat
+\node (circ) [circle, draw, below of = sum, node distance = 2.4cm] {};
+\node (circ) [circle, draw, below of = circ, node distance = 0.4cm] {};
+\node (circ) [circle, draw, below of = circ, node distance = 0.4cm] {};
+\node (circ) [circle, draw, below of = circ, node distance = 0.4cm] {};
+
+%circles for pfeat
+\node (circ) [circle, draw, above of =  pfeat, node distance = 2.2cm] {};
+\foreach \s in {1,...,11}
+{
+\node (circ) [circle, draw, below of = circ, node distance = 0.4cm] {};
+}
+
+\node [biglayer, right = of pfeat] (l1) {}
+	edge [<-] (pfeat);
+\node (circ) [circle, draw, above of =  l1, node distance = 2.2cm] {};
+\foreach \s in {1,...,11}
+{
+\node (circ) [circle, draw, below of = circ, node distance = 0.4cm] {};
+}
+\node [biglayer, right = of l1] (l2) {}
+	edge [<-] (l1);
+	\node (circ) [circle, draw, above of =  l2, node distance = 2.2cm] {};
+\foreach \s in {1,...,11}
+{
+\node (circ) [circle, draw, below of = circ, node distance = 0.4cm] {};
+}
+\node [biglayer, right = of l2] (l3) {}
+	edge [<-] (l2);
+\node (circ) [circle, draw, above of =  l3, node distance = 2.2cm] {};
+\foreach \s in {1,...,11}
+{
+\node (circ) [circle, draw, below of = circ, node distance = 0.4cm] {};
+}
+\node [right = of l3] (l4) {$V_{out}$}
+	edge [<-] (l3);
+
+\end{tikzpicture}

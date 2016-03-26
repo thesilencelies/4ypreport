@@ -1,9 +1,44 @@
 \section{Function Optimization}
+Given the vast state complexity present within MtG, an alternative avenue of research with potentially more useful applications was suggested. The task was to train some agent to be able to, given some black box function $f(\boldsymbol{x})$, find $\underset{\boldsymbol{x}_i}{\text{argmin}} (f(\boldsymbol{x}_i))$. Current methods that are used for such situations either require a very large number of iterations (pattern searching, simplex method) or some form of prior for the expected shape of the function (bayesian optimisation), so if an agent could be trained to com
+This could be defined as  a markov decision process, where the action is either to trial some $\boldsymbol{x}_i in f(\boldsymbol{x}_i)$ or stop, the state is set of previous observations of $f(\boldsymbol{x}_i)$ and the reward is $\begin{cases}
+ step penalty&  \text{non-terminal} \\
+-Loss(f(\boldsymbol{x}), f(\boldsymbol{x}_{min})) & \text{ terminal}
+\end{cases} $ where $Loss(a,b)$ is some function that is at a minimum when $a = b, \forall a \geq b$ and $step penalty$ is some non-positive constant that encourages the agent to reach a minimum in the smallest number of steps. 
+In order to define the problem in such a way that it can learn reasonably and fair comparisons could be done it was further considered that it was known (or constrained to be) that the minima would lie within some known finite subspace of $\mathbb{R}^n$, which in practice meant that the search space and minima were constrained by $x_i \leq x_{max}$ where $x_{max}$ is some known constant.
+
+For the experimentation, a series of polynomial functions were defined so that their parameters could be passed as an input, allowing existing neural network training architectures to be used. Each polynomial was defined by radomly choosing a set of roots from within the search space, then producing a series of coefficients by multiplying out
+$\int \prod_i (x - r_i) dx$, where $r_i$ is the ith root. Where $\boldsymbol{x}$ has multiple dimensions, in each dimension a separate polynomial is defined this way, so that $f(\boldsymbol{x})  = \sum_i \text{Poly}_i(x_i)$ where $\text{Poly}_i(x)$ is the polynomial function for the ith dimension. Then $f(\boldsymbol{x}$ is evaluated at every combination of roots, and the one with the lowest value is the global minima.
+
+Given the variane of these polynomials, and in particular how much the reward changes with higher orders or dimensions, it was necesarry to define a more even comparison between the architectures. One useful statistic was the error rate, defined as the proportion of final values that lay more that 5\% of the average absolute value of the minima away from the global minimmum. This indicates how many were ``close enough'' to the target. To further normalise things, two baseline agents were created to give a scale for the rewards to be put on. For simplicity of comparison, the number of steps the agent could take was fixed, and $steppenalty$ was set to 0. The baseline agents were a bruteforce agent that simply divided the search space into equal blocks and looked across all of these, ignoring the values it recieved. The reward this equal search agent recieved was defined as 0 relative reward. The other agent uses pattern search, where it checks a grid around the current best location, moves to the new best if there is one, or reduces the grid size if there isn't. The reward this pattern search agent achieved was set as 1 relative reward.
+
+\subsection{Recurrent Function Optimisation}
+The first design that was attempted was based on the work in \cite{RVA}. The idea is that the internal state of the recurrent neural network would be able to describe the state so that the  feedforwards network can decide what location to look at next. The network would be trained directly with REINFORCE, so only the rewards are needed, not any critic or similar structure. The final output is the minimum value observed, which is tracked at each function evalution step, and also passed to the RNN to help describe the state space better, as then it doesn't have to learn to do that as well. The architecture that was designed can be seen in fig~\ref{fig:RFOarch}. One crucial difference is that, unlike with \cite{RVA}, there is no classification, so no classification loss to train the RNN with, so it is only being trained by the REINFORCE module.
+
+Initially it was very unstable, only wanting to search values at the boundaries of the search space. However, once some regularisation terms were used, it stabalised to actually start searching the space.
+
+Two different forms for the loss function were tried - $Loss(f(\boldsymbol{x}), f(\boldsymbol{x}_{min}) = log(f(\boldsymbol{x}) - f(\boldsymbol{x}_{min} +1)$ and $Loss(f(\boldsymbol{x}), f(\boldsymbol{x}_{min}) = f(\boldsymbol{x}) - f(\boldsymbol{x}_{min})$. The log form was proposed because it was noted that the linear loss produced potentitally very large gradients, and there were concerns about stability. However, it seems that the log loss massively slowed learning down, and the agent seemed to stabilise to some policy relatively quickly.
+
+One other variation that was attempted to try and improve the results, based on how the agent in \cite{RVA} was trained, was to calcualate what the reward would be at every step, and use the gradient based on these to train the agent instead. The results are labelled everystep below, and generally seemed to do worse. The key difference seems to be that the output is based on the lowest observed value, rather than it's current estimate of the truth at each step, so it ended up producing large penalties for what were potentially reasonable explorative steps, and so producing more nuisance gradients that drove the policy away from optimality.
+
+\subsubsection{RFO Results}
+1d results  - need to produce these
+
+\subsection{Issues and Evaluation}
+Two key problems seem to be hampering the behaviour of this agent. One is that it is very easy for it to get stuck in local minima, whereby the local gradient of the policy is zero, but it is not at the optimum policy. Although that can be reduced by having a larger training dataset, it cannot be avoiding within this architecture. This problem is further exacerbated by the fact that there is nothing guiding the formation of the internal state except for the reinforce, which means that potentially it isn't retaining various pieces of salient information that would allow it to make better decisions.
+
+\subsection{Apprenticed RFO}
+One suggestion to improve the performance, based on the work in \cite{alphaGO}, was to train the agent to first replicate ``expert'' output, then further improve the policy using reinforcement learning as before. The idea is that by first moving to a space where it is making good actions already, it would escape local minima and have a more defined manner in which it would learn to define the state space. The first key challenge with this is to choose what sort of agent it should learn from. Initially it was proposed to get it to learn from a simplex agent, but the implimentations of simplex agents within the systems constraints were found to be consisitently outperformed by the pattern search agent. So it was decided to use the pattern search agent instead. 
+
+For each training function the agent produced an output, and in parallel the pattern search agent produced it's own output. Mean squared error loss was used to produce the gradient, where the error was defined as the difference between the output of the agent for that step and the pattern searcher.
+
+It proved quite difficult to actually get the agent to reproduce the output of the pattern search. %look at this and work on it.
+
+
+%bayes opt is current work and would be better, but I need to  impliment it, and it's not really playing ball right now
+
 
 \begin{figure}
 \input{diagrams/RecurrentArch}
-\end{figure}
-
-\begin{figure}
-\input{diagrams/RecurrentArch}
+\caption{Architecture for recurrent function optimisation}
+\label{fig:RFOarch}
 \end{figure}
