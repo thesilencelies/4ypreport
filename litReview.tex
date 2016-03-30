@@ -1,13 +1,41 @@
 \section{Literature Review}
 %this will detail all the prior work we're building on here.
 This section details the mathematical framework and previous research on which this project was based.
+
+\subsection{Artificial Neural Networks}
+This project uses artificial neural networks for the approximation of various functions within the agent. Artificial neural networks can be considered to be general function approximators - they learn a non-linear mapping between their inputs and outputs, the complexity of which is dependant on the hyperparameters and structure of the network.
+
+At their most basic, a neural network consists of layers of ``neurons''. Each neuron takes a linear sum of their inputs (often the output of all the neurons in the previous layer, plus an optional bias term, but not always), then applies a non-linear ``activation function'' to that.  So the output of the jth neuron in the layer could be written as:
+\begin{equation}
+O_j = f\big( \sum_i (w_{ji}I_i)\big)
+\end{equation} where $f(x)$ is the non-linear activation function - for example the sigmoid function, $\frac{1}{1+ \text{e}^{-x}}$.  $w_ij$ are model parameters that are learned. The non-linearity allows multiple consecutive layers to add further expressivity to the function, and the choice of what non-linearity is used also significanty affects it's behaviour.
+
+They are trained using gradient descent to minimise the loss function of interest,which varies between applications - where a specific output is desired mean squared error is often used. The gradient of the output with respect to the input is calculated, using the backpropagation algorithm, which is essentially the chain rule applied to the consecutive layers. So for a network with layers $a, b, c$ then 
+\begin{equation}
+\frac{dL}{dI}  = \frac{dL}{dO_b} \frac{dO_b}{dO_a} \frac{dO_a}{dI} 
+\end{equation}
+So the gradient can be ``backpropogated'' through the network by only considering the gradient (or subgradient for non-differentiable non-linearities) for the error wrt. the inputs of that layer. Then for each layer % need to finish this once we know how backprop actually works.
+
+%momentum and regularisers
+
+\begin{figure}
+\caption{The Backpropagation Algorithm}
+\label{fig:backprop}
+\end{figure}
+
+\subsubsection{Recurrent Neural Networks}
+
+A recurrent neural network (RNN) is a particular architecture of an artificial neural network where a layer takes it's previous values as an input. This means that there is now a ``memory'' to the network. With a simple feedforwards network, the outputs are only a ever a function of the current input, whilst with a RNN the output is a function of all previous inputs. This means that RNNs can be used for variable length inputs or outputs. In order to train such a network, the backpropagation algorithm has to be modified to a form called ``backpropagation through time''. In this the internal states of the network are ``rolled out'', so that each previous internal state is treated as if it were a separate layer. Then the gradients for each of these rolled out layers are averaged%how??
+, and this average gradient is used to update the parameters.
+
+\begin{figure}
+\caption{Backpropagation through time}
+\label{fig:bptt}
+\end{figure}
+
 \subsection{Reinforcement Learning}
-Reinforcement learning is %overview what it is
-
-Reinforcement learning is
-
- ``a technique where an agent attempts to maximise it's reward by repeated interactions with a complex uncertain environment.''\footnote{taken from \cite{Sutton:1998:IRL:551283}}
-
+Reinforcement learning is ``a technique where an agent attempts to maximise it's reward by repeated interactions with a complex uncertain environment.'' \cite{Sutton:1998:IRL:551283}
+In general RL is used 
 A MDP is a discrete time stochastic control process.
 
 \begin{figure}
@@ -60,10 +88,15 @@ Updates the parameters of the function approximation directly
 \label{eq:1}
 \end{equation*}
 
-\subsection{Deep Q-Learning}
+\subsubsection{Training ANNs with RL}
 
-\subsection{Recurrent Models of Visual Attention}
 
-\subsection{Deterministic Policy Gradient} %this will probably actually be embedded in the maths above
+\subsection{Related Work}
 
-\subsection{Asynchronous Methods for Deep Reinforcement Learning}
+%\subsection{Deep Q-Learning}
+
+%\subsection{Recurrent Models of Visual Attention}
+
+%\subsection{Deterministic Policy Gradient} %this will probably actually be embedded in the maths above
+
+%\subsection{Asynchronous Methods for Deep Reinforcement Learning}

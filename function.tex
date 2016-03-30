@@ -26,19 +26,56 @@ One other variation that was attempted to try and improve the results, based on 
 \subsection{Issues and Evaluation}
 Two key problems seem to be hampering the behaviour of this agent. One is that it is very easy for it to get stuck in local minima, whereby the local gradient of the policy is zero, but it is not at the optimum policy. Although that can be reduced by having a larger training dataset, it cannot be avoiding within this architecture. This problem is further exacerbated by the fact that there is nothing guiding the formation of the internal state except for the reinforce, which means that potentially it isn't retaining various pieces of salient information that would allow it to make better decisions.
 
+It should be noted that in general reucrrent neural networks are particularly susceptible to local minima, as they produce chaotic responses to changes in the error surface. \cite{rnns} % M.P. Cuéllar and M. Delgado and M.C. Pegalajar (2006). "An Application of Non-linear Programming to Train Recurrent Neural Networks in Time Series Prediction Problems".
+
+
+%do I need this?
+\begin{figure}
+\centering
+\begin{minipage}{.8\textwidth}
+\begin{algorithmic}
+\State $S(\boldsymbol{O}, \boldsymbol{s}_{i-1}; \theta) \mapsto \boldsymbol{s}_i$
+\State $Q(\boldsymbol{s} ;\theta) \mapsto \boldsymbol{x} $
+\State $G(\mu,\sigma)$  \Comment{Gaussian Noise}
+\State choose some initial $b$ \Comment{Baseline reward}
+ \Repeat
+ 	\State Pick some initial $\boldsymbol{x}_i$
+ 	\Repeat
+ 		\State observe $f(\boldsymbol{x}_i)$
+ 		\If $f(\boldsymbol{x}_i) < f(\hat{\boldsymbol{x}}_{min})$
+ 			\State$ \hat{\boldsymbol{x}}_{min} \gets \boldsymbol{x}_i$
+ 		\EndIf
+ 		\State $\boldsymbol{O}_i = \{f(\boldsymbol{x}_i),\boldsymbol{x}_i, f(\hat{\boldsymbol{x}}_{min}), \hat{\boldsymbol{x}}_{min}\} $
+ 		\State $s_{i+1} = S(\boldsymbol{O}_i, \boldsymbol{s}_{i}; \theta)$
+ 		\State $\boldsymbol{x}_{i+1} = G(Q(\boldsymbol{s}_{i+1};\theta),\sigma)$ 
+ 	\Until{Max steps}
+	\State $R = f(\hat{\boldsymbol{x}}_{min}) - f(\boldsymbol{x}_min)$
+	\State $b \gets b  + \alpha (R - b)$ \Comment{MSE gradient step for $b = \mathbb{E}[R]$}
+	\State $\delta = (R - b) \alpha \nabla_\theta \text{log}(Q(\boldsymbol{s}_{i+1})$
+	\State Update $\theta$ in the direction of $\delta$ using backpropagation through time
+ \Until{Max epochs}
+ \end{algorithmic}
+ \end{minipage}
+ \caption{Algorithm for running and training the Recurren Function Optimizer}
+ \label{alg:rfo}
+\end{figure}
+
+\begin{figure}
+\centering
+\input{diagrams/RecurrentArch}
+\caption{Architecture for recurrent function optimisation}
+\label{fig:RFOarch}
+\end{figure}
+
 \subsection{Apprenticed RFO}
 One suggestion to improve the performance, based on the work in \cite{alphaGO}, was to train the agent to first replicate ``expert'' output, then further improve the policy using reinforcement learning as before. The idea is that by first moving to a space where it is making good actions already, it would escape local minima and have a more defined manner in which it would learn to define the state space. The first key challenge with this is to choose what sort of agent it should learn from. Initially it was proposed to get it to learn from a simplex agent, but the implimentations of simplex agents within the systems constraints were found to be consisitently outperformed by the pattern search agent. So it was decided to use the pattern search agent instead. 
 
 For each training function the agent produced an output, and in parallel the pattern search agent produced it's own output. Mean squared error loss was used to produce the gradient, where the error was defined as the difference between the output of the agent for that step and the pattern searcher.
 
-It proved quite difficult to actually get the agent to reproduce the output of the pattern search. %look at this and work on it.
+It proved quite difficult to actually get the agent to reproduce the output of the pattern search. %look at this and work on it. what is happening?
+
 
 
 %bayes opt is current work and would be better, but I need to  impliment it, and it's not really playing ball right now
 
 
-\begin{figure}
-\input{diagrams/RecurrentArch}
-\caption{Architecture for recurrent function optimisation}
-\label{fig:RFOarch}
-\end{figure}

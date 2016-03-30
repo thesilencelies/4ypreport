@@ -17,12 +17,14 @@ In order to simplify this, as well as helping the learning to generalise well, i
  
  All of this produces an architecture as shown in figure~\ref{fig:mtgarch} training with the algorithm in \ref{alg:mtgval}
   \begin{figure}[htbf]
+  \centering
 \input{diagrams/MTGArch.tex}
 \caption{Architecture for the Magic: the Gathering playing agent}
 \label{fig:mtgarch}
 \end{figure}
 
  \begin{figure}[htbf]
+ \centering
  \begin{algorithmic}
  \State $V(s; \theta) \mapsto \mathbb{R} $
  \Repeat
@@ -69,4 +71,4 @@ A number of practical issues plagued the initial run-throughs of this agent. The
 
 With all of these things having been dealt with, it still wasn't performing very well - it wasn't at all clear that the agent learned anything useful, as it's win rate never improved, and when tested against a human player it's actions seemed entirely random. These issues can probably be ascribed to it's inability to clearly discern the state space, as the max/sum pooling inherently carries a lot of data loss, and it might not be able to tell the difference between importantly different states.
 
-The way to fix this issue would be to replace the pooling with recurrent nerual networks, which are able to take sequences of any given length and turn them into a set of features. However, the state space would continue to be very complicated. Another possible improvement to the learning would be to treat the opponent's actions as observations of off policy transitions, which could allow it to explore useful areas of the state space much more quickly, particularly if it is losing most of it's early games.
+The way to fix this issue would be to replace the pooling with recurrent nerual networks, which are able to take sequences of any given length and turn them into a set of features. However, the state space would continue to be very complicated. Another possible improvement to the learning would be to treat the opponent's actions as observations of off policy transitions, which could allow it to explore useful areas of the state space much more quickly, particularly if it is losing most of it's early games. Nevertheless, most of the design effort would have to go to very situation specific details to make sure that the state space was properly represented.

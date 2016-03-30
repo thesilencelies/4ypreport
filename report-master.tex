@@ -51,6 +51,8 @@
 %\usepackage{authblk} %package to allow us to include our institute nicely
 
 \usepackage{algpseudocode} %pseudocode
+%\algrenewcommand{\algorithmiccomment}[1]{\hskip5em\%#1}
+
 
 \usepackage{tikz} %for graphics made in Latex (so flowcharts/mindmaps/simple diagrams)
     \usetikzlibrary{trees, positioning,arrows,graphs,shapes,shadows,fit}
@@ -75,12 +77,11 @@
   \maketitle
   %abstract
   
-  \tableofcontents
+  \tableofcontents 
+   %introduction to the projects overall goals
+  \input{intro}
   %literature review needs to go here
   \input{litReview}
-  %introduction to the projects overall goals
-  \input{intro}
-  
   %explaination of how RL was intially tested
   \input{mazes}
   %explaination about the part of the project that worked on M:tG
