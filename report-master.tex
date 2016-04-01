@@ -2,11 +2,12 @@
 %this will contain \input for each of the sections, and all the general formatting.
 %this will need editing if additional packages are used
 
-\documentclass[twoside,11pt]{article}
+\documentclass[twoside,12pt]{article}
 %\usepackage{helvet}
 %\renewcommand{\familydefault}{\sfdefault}
 %\usepackage[T1]{fontenc}
 
+\setlength{\baselineskip}{10mm}
 \usepackage[
     backend=bibtex,
     citestyle=numeric,
@@ -53,7 +54,12 @@
 \usepackage{algpseudocode} %pseudocode
 %\algrenewcommand{\algorithmiccomment}[1]{\hskip5em\%#1}
 
-
+\algblockx[WithP]{WithP}{EndP}%withprobability command
+	[1][oops?]{\textbf{with probability #1} :}
+	{\textbf{end}}
+\algcblockx[Pelse]{WithP}{ElseP}{EndP}
+	{\textbf{else}}
+	{\textbf{end}}
 \usepackage{tikz} %for graphics made in Latex (so flowcharts/mindmaps/simple diagrams)
     \usetikzlibrary{trees, positioning,arrows,graphs,shapes,shadows,fit}
 \usepackage{pgfgantt} %for gantt charts

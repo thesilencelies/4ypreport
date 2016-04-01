@@ -1,0 +1,19 @@
+\begin{tikzpicture}[ node distance =1.3cm, > =  stealth, hv path/.style={to path={-| (\tikztotarget)}}, vh path/.style={to path={|- (\tikztotarget)}}]
+
+\foreach \x in {1,...,7} 
+{
+	\foreach \y in {2,...,5} 
+	{
+	\node [rectangle, draw, minimum size = 1cm] at (\x,\y) {\scriptsize{-0.01}};
+	}
+}
+\node [rectangle, draw, minimum size = 1cm, fill = yellow!20] at (1,1) {};
+\node at (1,1) {\small{start}};
+\node [rectangle, draw, minimum size = 1cm, fill = yellow!30] at (7,1) {goal};
+\foreach \x in {2,...,6} 
+	{
+	\node [rectangle, draw, minimum size = 1cm, fill = red!20] at (\x,1) {-1};
+	}
+%cliff border	
+\draw [ultra thick] (1.5, 0.5) -- (1.5,1.5) -- (6.5,1.5) -- (6.5,0.5);
+\end{tikzpicture}

@@ -1,0 +1,42 @@
+\begin{tikzpicture}[ node distance = 2cm, > =  stealth,
+%define the style for each of the nodes here
+state/.style={
+% The shape:
+circle,minimum size=14mm,
+% The rest
+very thick,draw=black!60, text = black!90,
+top color=white,bottom color=black!20},
+%the style for the highlighted node - change the term in square brackets to this to change the node to this
+action/.style={
+% The shape:
+rectangle,minimum size=9mm,rounded corners=2mm,
+% The rest
+very thick,draw=black!50,
+top color=yellow!10,bottom color=yellow!40},
+%the style for the info boxes on the right
+info/.style={
+% The shape:
+rectangle,minimum size=6mm,rounded corners=2mm,
+%text width and the bullet points
+ text width = 3.5cm,
+% The rest
+very thick,draw=black!40,
+top color=white,bottom color=yellow!20}
+]
+%create the nodes and link them with arrows
+\node (A) [state] at (0,0) {A};
+\node (a1) [action, right of =  A, label ={[blue]5: 0.3}, label  = {[blue]273: 0.7}] {$a_1$}
+	edge [<-] (A);
+\node (a2) [action, above right of  = A, label ={[blue] 10: 1}] {$a_2$}
+	edge [<-] (A);
+\node (B) [state, right = of a1] {B}
+	edge [<-] node [midway, above] {$r_1$}(a1)
+	edge [<-, bend right] node [midway, above] {$r_2$}(a2);
+\node (b1) [action, above right of = B, label = {[blue]85: 0.4}, label  ={[blue] 283: 0.6}] {$a_3$}
+	edge [<-] (B);
+
+\draw (a1.south) [->,bend left = 80] to node [midway, below] {$r_3$} (A); 
+\draw (b1.north) [->, out = 120, in = 90] to node [midway, above] {$r_4$} (A); 
+\draw (b1.290) [->, out = 270, in = 0] to node [midway, right] {$r_5$} (B); 
+	
+\end{tikzpicture}

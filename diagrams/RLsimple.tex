@@ -26,7 +26,7 @@ top color=white,bottom color=yellow!20}
 %create the nodes and link them with arrows
 \node (start) [stage, label = V] at (0,0){State};
 \node (s2) [highlight] [right = of start, label = Q] {Action}
-	edge [<-] (start);
+	edge [<-] node [midway, above] {$\pi$}(start);
 \node (s3) [stage] [below =  of s2] {Environment}
 	edge [<-](s2)
 	edge [->,bend left = 40] node[left] {reward} (start);
