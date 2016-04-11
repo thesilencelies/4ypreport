@@ -1,20 +1,42 @@
 \begin{tikzpicture}[ node distance =1cm, > =  stealth, hv path/.style={to path={-| (\tikztotarget)}}, vh path/.style={to path={|- (\tikztotarget)}}]
-\node [coordinate] (j1) at (0,0) {};
-\node (xs) [above left = of j1] {\big[$ \boldsymbol{x}_1, ...\boldsymbol{x}_{n}$\big] }
-	edge[vh path] (j1);
-\node (fs) [ right = of xs ] {\big[$ f(\boldsymbol{x}_1), ... f(\boldsymbol{x}_{n})$\big] }
-	edge[vh path] (j1);
-\node (H) [rectangle, minimum width = 3cm, draw, below = of j1] {H}
-	edge [<-] (j1);
-\node (L) [rectangle, minimum width = 2cm, draw, below = of H] {L}
-	edge [<-] (H);
-\node (xout) [circle, minimum width = 0.65cm, draw, right = of L] {$\boldsymbol{x}_{n+1}$}
-	edge [<-] (L);
-\node (Ft1) [rectangle, draw, fill = black!20, minimum width = 1cm, above right = of xout] {$f(\boldsymbol{x}_{n+1})$}
-	edge[->](xout);
-\draw [color = black!30, ->] (xout) to[bend right] (xs);
-\draw [color = black!30, ->] (Ft1) to[bend right] (fs);
-\draw [color = red, ->] (Ft1) -> (H);
-\draw [color = red, ->] (Ft1) to[bend right = 20] node[auto, near start ] {R} (L);
-\draw [->] (H.210) to[bend left = 140, distance = 3cm] (H.150);
+\node (Ft1) [rectangle, draw, fill = black!20, minimum width = 1cm] at (0,0) {$f(\boldsymbol{x}_{n})$};
+
+\node (x) [circle, draw, below right = of Ft1] {\small{$x_{\footnotesize{n+1}}$}};
+
+\node (xn) [circle, draw, node distance = 0.5cm, left = of x] {$x_{n}$}
+	edge [->] (Ft1.305);
+
+\node (RFO) [rectangle, draw, below left = of x, minimum width = 2cm, minimum height = 1.3cm] {RFO}
+	edge [->] (x)
+	edge [<-, vh path] (Ft1.240);
+\draw (RFO.north) [->, hv path] to (xn);
+
+\node [rectangle, draw, above right = of Ft1, minimum height = 2cm] (s) {S}
+	edge [<-, hv path] (Ft1);
+	
+\coordinate  [ node distance = 0.4cm, above = of s.85] (s1){}
+	edge [bend left = 90] (s.60);
+	 
+\coordinate  [node distance = 0.4cm, above = of s.95 ] (s2){}
+	edge (s1)
+	edge [bend right = 90, ->] (s.120); 
+	
+\node (Q) [rectangle, draw, minimum height = 2cm, right = of s.290] {Q};
+\draw (Q.120) [<-, hv path] to (s.325);
+
+\draw (Q.240) [hv path, <-] to (x);
+
+\node (Qv) [right = of Q] {Q($s,x_n$)}
+	edge [<-] (Q);
+\coordinate [node distance = 4cm, right = of RFO.east](qp)  {};
+\draw (qp) [hv path, red] to (Qv);
+\draw (qp) [red, ->] to node[near start, below] (drfo){deterministic policy gradient} (RFO);
+
+\coordinate  [above = of Qv, red] (Rp){}
+	edge [color = red] (Qv)
+	edge [hv path, color = red, ->] (Q);
+\draw (Rp) [->, color = red] to node [midway, above, red] {Bellman Update}(s.68);
+\node (R) [node distance = 0.5cm, right = of Rp, red] {R}
+	edge [color = red] (Rp);
+	
 \end{tikzpicture}

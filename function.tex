@@ -1,8 +1,9 @@
 \section{Function Optimization}
 %what we tried, why we tried it, and why it didn't work
-Given the vast state complexity present within MtG, an alternative avenue of research with potentially more useful applications was suggested. The task was to train some agent to be able to, given some black box function $f(\boldsymbol{x})$, find $\underset{\boldsymbol{x}_i}{\text{argmin}} (f(\boldsymbol{x}_i))$. Current methods that are used for such situations either require a very large number of iterations (pattern searching, simplex method) or some form of prior for the expected shape of the function (bayesian optimisation), so if an agent could be trained to compute the minima within a small number of steps with no explicit prior, that could be useful in a number of cases.
+%also needs more maths
+Given the vast state complexity present within MtG, an alternative avenue of research with potentially more useful applications was suggested. The task was to train some agent to be able to, given some black box function $f(\boldsymbol{x})$, find $\underset{\boldsymbol{x}_i}{\text{argmin}} (f(\boldsymbol{x}_i))$. Current methods that are used for such situations either require a very large number of iterations (pattern searching, simplex method) or some form of prior for the expected shape of the function (Bayesian optimisation), so if an agent could be trained to compute the minima within a small number of steps with no explicit prior, that could be useful in a number of cases.
 
-This could be defined as  a markov decision process, where the action is either to trial some $\boldsymbol{x}_i in f(\boldsymbol{x}_i)$ or stop, the state is set of previous observations of $f(\boldsymbol{x}_i)$ and the reward is $\begin{cases}
+This could be defined as  a Markov decision process, where the action is either to trial some $\boldsymbol{x}_i in f(\boldsymbol{x}_i)$ or stop, the state is set of previous observations of $f(\boldsymbol{x}_i)$ and the reward is $\begin{cases}
  step penalty&  \text{non-terminal} \\
 -Loss(f(\boldsymbol{x}), f(\boldsymbol{x}_{min})) & \text{ terminal}
 \end{cases} $ where $Loss(a,b)$ is some function that is at a minimum when $a = b, \forall a \geq b$ and $step penalty$ is some non-positive constant that encourages the agent to reach a minimum in the smallest number of steps. 
@@ -11,7 +12,6 @@ In order to define the problem in such a way that it can learn reasonably and fa
 For the experimentation, a series of polynomial functions were defined so that their parameters could be passed as an input, allowing existing neural network training architectures to be used. Each polynomial was defined by radomly choosing a set of roots from within the search space, then producing a series of coefficients by multiplying out
 $\int \prod_i (x - r_i) dx$, where $r_i$ is the ith root. Where $\boldsymbol{x}$ has multiple dimensions, in each dimension a separate polynomial is defined this way, so that $f(\boldsymbol{x})  = \sum_i \text{Poly}_i(x_i)$ where $\text{Poly}_i(x)$ is the polynomial function for the ith dimension. Then $f(\boldsymbol{x}$ is evaluated at every combination of roots, and the one with the lowest value is the global minima. The full algorithm is detailed in figure~\ref{alg:functiongen}.
 
-this block doesn't seem to add much - I'll leave it here in case it is useful
 \begin{figure}
 \begin{algorithmic}
 \State Randomly select  $N_{dim}\times N_{roots}$ values within range [$-x_{max}, x_{max}$] as the roots
@@ -62,24 +62,33 @@ this block doesn't seem to add much - I'll leave it here in case it is useful
 Given the variance of these polynomials, and in particular how much the reward changes with higher orders or dimensions, it was necessary to define a more even comparison between the architectures. One useful statistic was the error rate, defined as the proportion of final values that lay more that 5\% of the average absolute value of the minima away from the global minimum. This indicates how many were ``close enough'' to the target. To further normalize things, two baseline agents were created to give a scale for the rewards to be put on. For simplicity of comparison, the number of steps the agent could take was fixed, and $steppenalty$ was set to 0. The baseline agents were a brute force agent that simply divided the search space into equal blocks and looked across all of these, ignoring the values it received. The reward this equal search agent received was defined as 0 relative reward. The other agent uses pattern search, where it checks a grid around the current best location, moves to the new best if there is one, or reduces the grid size if there isn't. The reward this pattern search agent achieved was set as 1 relative reward.
 
 \subsection{Recurrent Function Optimisation}
-The first design that was attempted was based on the work in \cite{RVA}. The idea is that the internal state of the recurrent neural network would be able to describe the state so that the feedforwards network can decide what location to look at next. The network would be trained directly with REINFORCE, so only the rewards are needed, not any critic or similar structure. The final output is the minimum value observed, which is tracked at each function evaluation step, and also passed to the RNN to help describe the state space better, as then it doesn't have to learn to do that as well. The architecture that was designed can be seen in fig~\ref{fig:RFOarch}. On top of that structure, the average reward $b$ was also learned as a parameter of the network so that the variance reduction in REINFORCE could be used. One crucial difference is that, unlike with \cite{RVA}, there is no classification, so no classification loss to train the RNN with, so it is only being trained by the REINFORCE module.
+The first design that was attempted was based on the work in \cite{RVA}. The idea is that the internal state of the recurrent neural network would be able to describe the state so that the feed-forwards network can decide what location to look at next. The network would be trained directly with REINFORCE, so only the rewards are needed, not any critic or similar structure. The final output is the minimum value observed, which is tracked at each function evaluation step, and also passed to the RNN to help describe the state space better, as then it doesn't have to learn to do that as well. The architecture that was designed can be seen in fig~\ref{fig:RFOarch}. On top of that structure, the average reward $b$ was also learned as a parameter of the network so that the variance reduction in REINFORCE could be used. One crucial difference is that, unlike with \cite{RVA}, there is no classification, so no classification loss to train the RNN with, so it is only being trained by the REINFORCE module.
 
-Initially it was very unstable, only wanting to search values at the boundaries of the search space. However, once some regularization terms were used, it stabilized to actually start searching the space.
+Initially it was very unstable, only wanting to search values at the boundaries of the search space. It seemed to be the case that the internal parameters were exploding to massive values and saturating on every pass. So two normalisation hyper parameters were used - the cutoffNorm and the maxOutNorm. The cutoff norm is the maximum L2 norm of all of the gradients of the parameters for all the layers. If the norm exceeds that value, all the gradients are scaled down by the same amount so that the L2 norm for the gradients equals the cutoffNorm. This prevents exploding gradients within the recurrent elements of the network. The maxOutNorm sets the maximum L2 norm of any one layer of the network. Then, like with the cutoffNorm, if the L2 norm for the layer exceeds the maxOutNorm then all of the paramters of that layer are scaled down by the same amount until their L2 norm is that value. This, like weight decay, allows the network to ``forget'' unhelpful learning and also keeps the outputs bounded. Once both of these were applied the agent began to use much more of the space.
 
-Two different forms for the loss function were tried - $Loss(f(\boldsymbol{x}), f(\boldsymbol{x}_{min}) = log(f(\boldsymbol{x}) - f(\boldsymbol{x}_{min} +1)$ and $Loss(f(\boldsymbol{x}), f(\boldsymbol{x}_{min}) = f(\boldsymbol{x}) - f(\boldsymbol{x}_{min})$. The log form was proposed because it was noted that the linear loss produced potentially very large gradients, and there were concerns about stability. However, it seems that the log loss massively slowed learning down, and the agent seemed to stabilize to some policy relatively quickly.
+Another important trick that significantly improved performance was normalising the inputs to the network. Particularly in the presence of the above parameters, it is necessary to have every input value to the network to be of the same order of magnitude. However, the range of the output of the function isn't known exactly, and it's relative magnitude to itself is very important for working out the minimum. The idea that was hit upon to standardise the outputs was to use an approximate upper bound on the output of the function and divide it by that. Because of how the function was defined, the highest order term of the polynomial always has a coefficient of 1 (as any other function could be scaled to be like that anyway). Furthermore, given that the roots are within known bounds, the agent will never ask for $x$ values above those bounds. So if the output of the function approximator is divided by $x_{max}^{p+1}$, where $p$ is the number of parameters used to define the function, then the vast majority of the outputs should lie within the range [$0 - 1$]. Given that actually the agent spends a lot more time within tighter bounds than those, and the other inputs were in the range [$0- x_{max} $] the output was actually divided by $x^p$. This did result in immediate improvement in performance.
 
-One other variation that was attempted to try and improve the results, based on how the agent in \cite{RVA} was trained, was to calculate what the reward would be at every step, and use the gradient based on these to train the agent instead. The results are labeled everystep below, and generally seemed to do worse. The key difference seems to be that the output is based on the lowest observed value, rather than it's current estimate of the truth at each step, so it ended up producing large penalties for what were potentially reasonable exploratory steps, and so producing more nuisance gradients that drove the policy away from optimality.
+Two different forms for the loss function were tried - $Loss(f(\boldsymbol{x}), f(\boldsymbol{x}_{min}) = log(f(\boldsymbol{x}) - f(\boldsymbol{x}_{min} +1)$ and $Loss(f(\boldsymbol{x}), f(\boldsymbol{x}_{min}) = f(\boldsymbol{x}) - f(\boldsymbol{x}_{min})$. The log form was proposed because it was noted that the linear loss produced potentially very large gradients, and there were concerns about stability. However, it seems that the log loss massively slowed learning down, and the agent seemed to stabilize to some policy relatively quickly. This is probably because the ideal loss function curve should be linear with the error for large error, whilst the log term is less than that.
+
+One other variation that was attempted to try and improve the results, based on how the agent in \cite{RVA} was trained, was to calculate what the reward would be at every step, and use the gradient based on these to train the agent instead. The results are labelled everystep below, and generally seemed to do worse. The key difference seems to be that the output is based on the lowest observed value, rather than it's current estimate of the truth at each step, so it ended up producing large penalties for what were potentially reasonable exploratory steps, and so producing more nuisance gradients that drove the policy away from optimality.
 
 \subsubsection{RFO Results}
-1d results  - need to produce these
+%1d results  - need to produce these
+
+
+\begin{figure}
+\centering
+\input{graphs/opt1-full}
+\caption{RFO learning behaviour \\ \emph{These values are not normalised as they include training values}}
+\label{fig:opt1full}
+\end{figure}
 
 \subsection{Issues and Evaluation}
-Two key problems seem to be hampering the behavior of this agent. One is that it is very easy for it to get stuck in local minima, whereby the local gradient of the policy is zero, but it is not at the optimum policy. Although that can be reduced by having a larger training dataset, it cannot be avoiding within this architecture. This problem is further exacerbated by the fact that there is nothing guiding the formation of the internal state except for the reinforce, which means that potentially it isn't retaining various pieces of salient information that would allow it to make better decisions.
+Two key problems seem to be hampering the behaviour of this agent. One is that it is very easy for it to get stuck in local minima, whereby the local gradient of the policy is zero, but it is not at the optimum policy. Although that can be reduced by having a larger training dataset, it cannot be avoiding within this architecture. This problem is further exacerbated by the fact that there is nothing guiding the formation of the internal state except for the reinforce, which means that potentially it isn't retaining various pieces of salient information that would allow it to make better decisions.
 
 It should be noted that in general recurrent neural networks are particularly susceptible to local minima, as they produce chaotic responses to changes in the error surface. \cite{rnns} % M.P. Cuéllar and M. Delgado and M.C. Pegalajar (2006). "An Application of Non-linear Programming to Train Recurrent Neural Networks in Time Series Prediction Problems".
 
 
-%do I need this?
 \begin{figure}
 \centering
 \begin{minipage}{.8\textwidth}
@@ -122,13 +131,19 @@ One suggestion to improve the performance, based on the work in \cite{alphaGO}, 
 
 For each training function the agent produced an output, and in parallel the pattern search agent produced it's own output. Mean squared error loss was used to produce the gradient, where the error was defined as the difference between the output of the agent for that step and the pattern searcher.
 
-It proved quite difficult to actually get the agent to reproduce the output of the pattern search. %look at this and work on it. what is happening?
+The agent learned to produce something similar to the output after a reasonable number of iterations, at which point it was achieving only slightly worse scores than the pattern search. Then when it was switched to reinforcement learning it produced a temporary drop in performance, followed by a significant improvement, exceeding that of the pure RL agent. However this result seems to be unstable, as upon further iterations it produces decaying performance. The improvement in performance of the agent after the initial batch could be attributed to it learning to explore better, as in all the cases the function used was non-convex.
 
-%also should be detailing how the architecture works a lot more
+In order for it to produce adequate output to match the performance of the tutor, a number of hyper parameters had to be adjusted as well, which was useful for tuning the hyper parameters for the less well defined straight RL case.
 
-%there also should be a bunch more sections here detailing all the other stuff I changed to improve it's performance:
-%normalisation
-%everystep
-%DetRFO
-%L2Norm!!!
+\subsection{Deterministic RFO}
+Given that the environment is both stochastic and non-adversarial, the optimal policy for the agent should be deterministic. So REINFORCE can only ever asymptotically converge to the optimal policy, and given the actual implementation, not even that. So the methods described in \cite{DetContCont} ought to be able to produce better performance. A deterministic actor critic agent was created, within the same code structure as the REINFORCE agents, but this one is, in theory, off policy. The total structure of the agent is detailed in figure~\ref{fig:detrfo}. The key additions are the critic networks, which consist of both an RNN that produces an observation of the state, that is the series of value-coordinate pairs so far observed, and the Q-network, which estimates the value of that state.
+
+However, so far the agent has been very unstable, as is common for RL agents being trained using neural networks. The likely culprit is that the experience replay is insufficiently random, due to batches still being used. However, it is hard to produce a computationally efficient implementation with the hardware available. It is also possible that different architectures for the critic may produce better results, but it's been a challenge to produce them and time ran out. Another possible solution could be to use the network's internal state to produce the input to the critic network, but in that case it is unclear how it would learn to produce a meaningful internal state.
+
+\begin{figure}
+\centering
+\input{diagrams/QLearnArch}
+\caption{Deterministic RFO structure}
+\label{fig:detrfo}
+\end{figure}
 

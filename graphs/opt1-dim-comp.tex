@@ -1,0 +1,35 @@
+
+\begin{tikzpicture}[scale = 0.8]
+\begin{axis}[
+    title={Average reward experienced by RFO agent},
+    name = rewplot,
+    xlabel={Epoch},
+    ylabel={Total Reward},
+    legend pos=north west,
+    ymajorgrids=true,
+    %grid style=dashed,
+]
+ 
+\addplot table [ color=blue,mark=square,x = epoch, y=optrew, col sep=comma] {graphs/opt1-full-data.csv};
+\addplot table [ color=red,mark=square,x = epoch, y=valrew, col sep=comma] {graphs/opt1-full-data.csv};
+    \legend{Training, Validation}
+    
+\end{axis}
+
+\begin{axis}[
+    title={Average Error rate experienced by RFO agent},
+    at = (rewplot.right of south east), anchor = left of south west, 
+    xlabel={Epoch},
+    ylabel={Error Rate (\%)},
+    legend pos=south west,
+    ymajorgrids=true,
+    %grid style=dashed,
+]
+ 
+\addplot table [ color=blue,mark=square,x = epoch, y=optER, col sep=comma] {graphs/opt1-full-data.csv};
+\addplot table [ color=red,mark=square,x = epoch, y=valER, col sep=comma] {graphs/opt1-full-data.csv};
+    \legend{Training, Validation}
+    
+\end{axis}
+\end{tikzpicture}
+
