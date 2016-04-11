@@ -3,6 +3,31 @@
 
 %do I even want to explain how the magic codebase works? - depends on space
 \subsection{Code for the Function Optimiser}
+The whole system is based on the implimentation of Recurrent Visual Attention from \cite{Torch:RVA}. It's written in lua using the torch nn libraries, and additionally depends on the dpnn and rnn packages. All of the files can be found in the package rl-optim, though the init file will need modifying.
+
+the following sections detail the exact behaviour and interface of each of the additional torch objects created for this project
+\subsubsection{FunctionData}
+This objecct is a dataSource for the dpnn experiment. It contains a function that takes an input of some parameters and a coordinate of the same dimension and returns a scalar.this function can be accessed by calling \emph{getFunction()} It defines a series of parameters and calculates the minimum value for the function given those parameters using the algorithm defined in \ref{alg:data}. These are used as the inputs and targets for the experiment.
+
+\subsubsection{FunctionInput}
+This is an NN module which takes a reference to a function at it's creation. This function should take a set of parameters and a coordinate of the same dimension as the parameters as an input and return a scalar value. When \emph{updateOutput} is called, the expected inputs are the batch of function parameters, the new coordinate to check, and it's previous output for this batch, or an empty tensor if this is the first time. It returns a tensor containing the minimum value recieved so far, the coordinate of the minimum value checked, the last coordinate checked, and the value it recieved for it. 
+\subsubsection{RLFeedback}
+This is an observer from dpnn that calculates the total reward the agent recieved across the task and the agent's accuracy. These parameters are useful both for analysis and to enable early stopping.
+\subsubsection{RLoptreward}%whats the correct name for this?
+This function observes the output of the whole network, calculates the reward, subtracts the baseline and transmits the reward to the REINFORCE modules.
+
+\subsubsection{reinforceEveryStep}
+This recieves the reward recieved by the agent not only as if it stopped st the last step, but as if it had stopped after each step. Then it creates the gradient for each step based on that step's rewards.
+\subsubsection{RecurrentFunctionOptim}
+this module is a recurrent wrapper that handles the way the data is passed across the network. It takes as inputs on instantiation the recurrent network that estimates the internal state, the network that estimates the next location based on the internal state and the module that handles the function calculation along with some parameters. It runs the algorithm for a fixed number of steps and then returns the concatenation of all the outputs of the function module.
+
+\subsubsection{ApprenticedRFO}
+This module is based on RecurrentFunctionOptim, but it first impliments an example based gradient descent training - teaching the modules to attempt to replicate the output of a pattern search. It has two additional function calls beyond the standard module function calls - beFree() and backToSchool() which turn this "apprenticed" behaviour on and off.
+
+\subsubsection{DetRFO}
+This module takes the same inputs as recurrent function Optim, plus a state generation and value-from-state network for the critic. It impliments an actor critic approach to the learning problem, along with a deterministic policy gradient.
+
+
 
 \section{References}
 \printbibliography[omitnumbers = false]
