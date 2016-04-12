@@ -9,7 +9,7 @@ The whole system is based on the implementation of Recurrent Visual Attention fr
 
 the following sections detail the exact behaviour and interface of each of the additional torch objects created for this project
 \subsubsection{FunctionData}
-This object is a dataSource for the dpnn experiment. It contains a function that takes an input of some parameters and a coordinate of the same dimension and returns a scalar.this function can be accessed by calling \emph{getFunction()} It defines a series of parameters and calculates the minimum value for the function given those parameters using the algorithm defined in \ref{alg:data}. These are used as the inputs and targets for the experiment.
+This object is a dataSource for the dpnn experiment. It contains a function that takes an input of some parameters and a coordinate of the same dimension and returns a scalar.this function can be accessed by calling \emph{getFunction()} It defines a series of parameters and calculates the minimum value for the function given those parameters using the algorithm defined in figure~\ref{alg:functiongen}. These are used as the inputs and targets for the experiment.
 
 \subsubsection{FunctionInput}
 This is an NN module which takes a reference to a function at it's creation. This function should take a set of parameters and a coordinate of the same dimension as the parameters as an input and return a scalar value. When \emph{updateOutput} is called, the expected inputs are the batch of function parameters, the new coordinate to check, and it's previous output for this batch, or an empty tensor if this is the first time. It returns a tensor containing the minimum value received so far, the coordinate of the minimum value checked, the last coordinate checked, and the value it received for it. 
@@ -24,7 +24,7 @@ This receives the reward received by the agent not only as if it stopped st the 
 this module is a recurrent wrapper that handles the way the data is passed across the network. It takes as inputs on instantiation the recurrent network that estimates the internal state, the network that estimates the next location based on the internal state and the module that handles the function calculation along with some parameters. It runs the algorithm for a fixed number of steps and then returns the concatenation of all the outputs of the function module.
 
 \subsubsection{ApprenticedRFO}
-This module is based on RecurrentFunctionOptim, but it first implements an example based gradient descent training - teaching the modules to attempt to replicate the output of a pattern search. It has two additional function calls beyond the standard module function calls - beFree() and backToSchool() which turn this "apprenticed" behaviour on and off.
+This module is based on RecurrentFunctionOptim, but it first implements an example based gradient descent training - teaching the modules to attempt to replicate the output of a pattern search. It has two additional function calls beyond the standard module function calls - \emph{beFree()} and \emph{backToSchool()} which turn this "apprenticed" behaviour on and off.
 
 \subsubsection{DetRFO}
 This module takes the same inputs as recurrent function Optim, plus a state generation and value-from-state network for the critic. It implements an actor critic approach to the learning problem, along with a deterministic policy gradient.

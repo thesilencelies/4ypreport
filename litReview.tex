@@ -76,7 +76,7 @@ More formally, the gradient with which the parameters are updated with can be co
 \begin{equation}
 \frac{\partial x_t}{\partial x_k} =\sum_{t \geq i > k} \frac{\partial x_i}{\partial x_{i-1}} 
 \end{equation}
- where $L_t$ is the loss at time step $t$, $x_t$ is the internal state at time $t$ and $\theta$ are the parameters of the RNN, and $\frac{\partial^+ x_k}{\partial\theta}$ is the immediate gradient of $x_k$ with respect to $\theta$. \cite{pascanu13} %http://www.jmlr.org/proceedings/papers/v28/pascanu13.pdf
+ where $L_t$ is the loss at time step $t$, $x_t$ is the internal state at time $t$ and $\theta$ are the parameters of the RNN, and $\frac{\partial^+ x_k}{\partial\theta}$ is the immediate gradient of $x_k$ with respect to $\theta$. \cite{pascanu2012difficulty}
  
 RNNs are very powerful, having been shown to be technically Turing complete, and are capable of handling a much broader range of situations than pure feed-forwards networks. However they have their own additional issues - they are much more prone to exploding and vanishing gradients, where the gradients of elements many steps before the reward either produce exponentially large or exponentially small gradients, either dominating any impact of more recent steps or failing to produce any learning at all for such distances. Furthermore, in part due to their power, they tend to produce chaotic responses to variations in the error surface, meaning they are much more likely to end up in unhelpful local minima.
 
@@ -170,7 +170,7 @@ There are several key challenges this brings up however: ones of stability, gene
 
 One other interesting impact of using a function approximation is that, because by it's nature the function approximation can't produce the true Q value everywhere, it's most desirable for it to be correct in states where the agent is likely to travel, whilst wrong about states that the agent shouldn't end up in. So although it still needs to be able to explore every state to check to see what are better, more of the learning effort should be focussed on more profitable states.
 
-Because of those reasons, for many years it was considered impossible to use neural networks as the function approximators in reinforcement learning. However, in \cite{dpmind atari} the team at Google Deepmind managed to train a deep network to play Atari games using reinforcement learning. The key changes are that they used experience replay and a target network. 
+Because of those reasons, for many years it was considered impossible to use neural networks as the function approximators in reinforcement learning. However, in \cite{atariDQN} the team at Google Deepmind managed to train a deep network to play Atari games using reinforcement learning. The key changes are that they used experience replay and a target network. 
 
 With experience replay they store a set of the previous transitions, then at each learning step, rather than just update with the last transition, they produce a mini-batch of a random selection of previous transitions to learn from, and apply Q-learning for each of them to create the targets to update the network weights with. The randomness helps reduce the chance of the network ``forgetting'' something that it learned from a previous transition and helps improve learning stability. 
 
@@ -197,17 +197,18 @@ This is produced by approximating the action value function as if it were the sa
 
 This method is again on-policy, and indeed only works for stochastic policies, as the log trick used to remove the dependence on the gradient of state distribution from the performance gradient depends on the policy having a non-zero probability of taking any action. Indeed, for a long time it was thought that in order to calculate the policy gradient for a deterministic policy a model of the environment is needed to work out the state distribution.
 
-However, in \cite{detpolgrad}, it was shown that, providing some basic properties of the function are true, the gradient of a deterministic policy $\mu(s)$ is:
+However, in \cite{silver2014deterministic}, it was shown that, providing some basic properties of the function are true, the gradient of a deterministic policy $\mu(s)$ is:
 \begin{equation}
 \nabla_\theta J =\mathbb{E}\big[ \nabla_\theta  \mu ( s ; \theta^\mu) \nabla Q^\mu (s,a)|_{a = \mu(s)}\big]
 \end{equation}
 This can be implemented using an Actor-Critic method, whereby there is a separate actor and critic networks, the actor implementing $\mu$ and the critic $Q^\mu$. The actors weights are updated according to the above gradient, whilst the critic can use SARSA or Q learning updates as in the discrete case, but taking action as an input.
 
-In \cite{detcontcont} the above was combined with the insights from \cite{deepmindatari} to produce an actor critic system that used the deterministic policy gradient to train deep neural networks to produce the control for various continuous tasks. The main additional innovation was that the target network parameters are slowly updated towards the current parameters at each step, rather than copying across after some number of steps, to better keep the systems disjoint.
+In \cite{lillicrap2015continuous} the above was combined with the insights from \cite{atariDQN} to produce an actor critic system that used the deterministic policy gradient to train deep neural networks to produce the control for various continuous tasks. The main additional innovation was that the target network parameters are slowly updated towards the current parameters at each step, rather than copying across after some number of steps, to better keep the systems disjoint.
 
 \subsection{Related Work}
-In \cite{deepmindMtg} google deeepmind look at the parsing and analysis of Magic: the Gathering cards using deep networks, which is a crucial step in developing a competent AI to play the game as a whole.
+In \cite{ling2016latent} %read the actual paper and rewrite this bit please
+google deeepmind look at the parsing and analysis of Magic: the Gathering cards using deep networks, which is a crucial step in developing a competent AI to play the game as a whole.
 
-In \cite{deepmindAlphaGo} the team at Google Deepmind produced an agent trained by reinforcement learning that beat the world champion at the board game Go. There are many interesting developments on the standard RL trained model, such as retaining a smaller network for their monte-carlo tree searches, but the most interesting technique for this paper was their method of initially training the agent. They first taught the agent to predict expert moves from a large series of board states in a supervised manner. Having trained this agent, the same networks were then used to initialise a reinforcement learning agent that they then played against itself for an extended period of time to produce the value network with which they made the initial decisions with the AlphaGo agent. 
+In \cite{alphaGo} the team at Google Deepmind produced an agent trained by reinforcement learning that beat the world champion at the board game Go. There are many interesting developments on the standard RL trained model, such as retaining a smaller network for their monte-carlo tree searches, but the most interesting technique for this paper was their method of initially training the agent. They first taught the agent to predict expert moves from a large series of board states in a supervised manner. Having trained this agent, the same networks were then used to initialise a reinforcement learning agent that they then played against itself for an extended period of time to produce the value network with which they made the initial decisions with the AlphaGo agent. 
 %what is the related work to the results of this project?
 
