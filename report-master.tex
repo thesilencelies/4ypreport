@@ -64,6 +64,23 @@
 \usepackage{tikz} %for graphics made in Latex (so flowcharts/mindmaps/simple diagrams)
     \usetikzlibrary{trees, positioning,arrows,graphs,shapes,shadows,fit}
 \usepackage{pgfplots} %for graph plotting
+\pgfplotsset{
+    mark one*/.style={
+        scatter,
+        scatter src=x,
+        scatter/@pre marker code/.code={
+            \pgfmathtruncatemacro\usemark{
+               \coordindex == #1
+            }
+            \ifnum\usemark=0
+                \pgfplotsset{mark=none}
+            \fi
+        },
+        scatter/@post marker code/.code={}
+    }
+}
+
+
 \usepackage{rotating} %to rotate a table
 \usepackage{setspace}
 

@@ -6,12 +6,14 @@ The primary results of this research are an exploration of the limits of current
 
 \subsection{Context}
   %why do we care?
-Beyond immediate applications in terms of producing better quality AI for video games themselves, such research is really helpful to 
-
+Beyond immediate applications in terms of producing better quality AI for video games themselves, such research is really helpful to a number of different areas. The work in \cite{deepmindatari} was used to develop an end to end training system for visual control for a robot attempting a number of difficult tasks in \cite{deepvisuomotorcont}, and further advances in reinforcement learning would quickly find application in a number of different areas of robotics. The work on function optimisation in particular has several direct uses, as well as the indirect gains in terms of control and comprehension in a sequentially observed continuous environment. For example, such an optimiser could be used to quickly find the optimal hyper parameter settings for  a neural network, a task for which currently Bayesian optimisation is used.
 
 \subsection{Objectives}
-%what are we trying to do
+%what are we trying to do?
+The primary aim of the research in this paper was to develop an agent that trained neural networks using reinforcement learning to perform the task in hand, be that playing a card game or producing the minimum of some given black box function. Within this objective are the sub-goals of gaining a comprehensive understanding of the current state of the art within reinforcement learning, and learning the arcane tricks required to be able to train deep neural networks.
+
+As a secondary objective, it would be desirable to gain further technical understanding about what a neural network can and cannot learn, as well as potentially developing an architecture upon which further research can easily be added.
 
 \subsection{Report structure}
-
 %how the rest of the report flows
+This report is organised broadly into two sections, exploring the research into game playing agents and function optimisers respectively. Within each section, the specific implementations and associated challenges are detailed, as well as any experimental results gathered.

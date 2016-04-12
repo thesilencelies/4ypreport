@@ -10,8 +10,8 @@
     %grid style=dashed,
 ]
  
-\addplot table [ color=blue,mark=square,x = epoch, y=optrew, col sep=comma] {graphs/opt1-full-data.csv};
-\addplot table [ color=red,mark=square,x = epoch, y=valrew, col sep=comma] {graphs/opt1-full-data.csv};
+\addplot table [ color=blue,mark=none,x = epoch, y=optrew, col sep=comma] {graphs/opt1-full-data.csv};
+\addplot table [ color=red,mark=none,x = epoch, y=valrew, col sep=comma] {graphs/opt1-full-data.csv};
     \legend{Training, Validation}
     
 \end{axis}
@@ -26,8 +26,8 @@
     %grid style=dashed,
 ]
  
-\addplot table [ color=blue,mark=square,x = epoch, y=optER, col sep=comma] {graphs/opt1-full-data.csv};
-\addplot table [ color=red,mark=square,x = epoch, y=valER, col sep=comma] {graphs/opt1-full-data.csv};
+\addplot table [ color=blue,mark=none,x = epoch, y=optER, col sep=comma] {graphs/opt1-full-data.csv};
+\addplot table [ color=red,mark=none,x = epoch, y=valER, col sep=comma] {graphs/opt1-full-data.csv};
     \legend{Training, Validation}
     
 \end{axis}

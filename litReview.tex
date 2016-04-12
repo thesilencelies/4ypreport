@@ -11,6 +11,23 @@ At their most basic, a neural network consists of layers of ``neurons''. Each ne
 O_j = f\big( \sum_i (w_{ji}I_i)\big)
 \end{equation} where $f(x)$ is the non-linear activation function - for example the sigmoid function, $\frac{1}{1+ \text{e}^{-x}}$.  $w_ij$ are model parameters that are learned. The non-linearity allows multiple consecutive layers to add further expressiveness to the function, and the choice of what non-linearity is used also significantly affects it's behaviour.
 
+The two main non-linearities used within the experiments in this paper are ReLU and HardTanh. Both are non-differentiable, but do have sub-gradients. ReLU (Rectified Linear Units) are defined as:
+\begin{equation}
+\text{ReLU}(x) = \begin{cases}
+0 & x < 0 \\
+x & x \ge 0 \\
+\end{cases}
+\end{equation}
+HardTanh are defined as:
+\begin{equation}
+\text{HardTanh}(x) = \begin{cases}
+-1 & x < -1 \\
+x & |x| < 1 \\
+1 & x > 1 \\
+\end{cases}
+\end{equation}
+Their respective advantages are that ReLU don't suffer from having a critical region where the gradients are non-zero, whilst HardTanh has the advantage that it can pass both negative and positive values.
+
 They are trained using gradient descent to minimise the loss function of interest,which varies between applications - where a specific output is desired mean squared error is often used. The gradient of the output with respect to the input is calculated, using the backpropagation algorithm, which is essentially the chain rule applied to the consecutive layers. So for a network with layers $a, b, c$, where $O_a$ is the output of layer $a$ and $I_a$ is the input to layer $a$ then 
 \begin{equation}
 \frac{dL}{dI}  = \frac{dL}{dO_b} \frac{dO_b}{dO_a} \frac{dO_a}{dI} 
@@ -190,7 +207,7 @@ In \cite{detcontcont} the above was combined with the insights from \cite{deepmi
 
 \subsection{Related Work}
 In \cite{deepmindMtg} google deeepmind look at the parsing and analysis of Magic: the Gathering cards using deep networks, which is a crucial step in developing a competent AI to play the game as a whole.
-In \cite{Reinforcement-like-parameter} %need to check these out a little more thoroughly
 
+In \cite{deepmindAlphaGo} the team at Google Deepmind produced an agent trained by reinforcement learning that beat the world champion at the board game Go. There are many interesting developments on the standard RL trained model, such as retaining a smaller network for their monte-carlo tree searches, but the most interesting technique for this paper was their method of initially training the agent. They first taught the agent to predict expert moves from a large series of board states in a supervised manner. Having trained this agent, the same networks were then used to initialise a reinforcement learning agent that they then played against itself for an extended period of time to produce the value network with which they made the initial decisions with the AlphaGo agent. 
 %what is the related work to the results of this project?
 

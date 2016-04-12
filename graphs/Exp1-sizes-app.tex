@@ -1,0 +1,24 @@
+
+\begin{tikzpicture}
+\begin{axis}[
+    title={Normalised reward experienced by Apprenticed RFO agent for different hidden sizes},
+    name = rewplot,
+    xlabel={Epoch},
+    ylabel={norm. Reward},
+    legend pos=south east,
+    ymajorgrids=true,
+    width = \textwidth,
+    height = 0.8\textwidth
+    %grid style=dashed,
+]
+  \draw [color = black] (axis cs: -20,1) to node [very near start, above] {\footnotesize{pattern reward}} (axis cs:300,1);
+\addplot [mark = *, mark one*=54, color = blue] table [ x = epoch, y= norm test rew, col sep=comma] {graphs/exp1/opt2sizeit1.csv};
+\addplot [mark = *, mark one*=49, color = red] table [ x = epoch, y= norm test rew, col sep=comma] {graphs/exp1/opt2sizeit2.csv};
+    \legend{32, 64, 128, 256, 512, 1024,}
+
+
+
+    
+\end{axis}
+\end{tikzpicture}
+
