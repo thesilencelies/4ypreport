@@ -1,0 +1,48 @@
+\begin{tikzpicture}[ node distance = 0.6cm, > =  stealth,
+layer/.style={ rectangle, draw, minimum width  = 4cm, minimum height = 0.8cm },
+NL/.style={ rectangle, draw, minimum width  = 1.7cm, minimum height = 0.8cm, rounded corners },
+circ/.style={ circle, draw, text width = 0.65cm },
+hv path/.style={to path={-| (\tikztotarget)}},
+vh path/.style={to path={|- (\tikztotarget)}}
+]
+%create the nodes and link them with arrows
+\node (x) at (0,0) [circ] { ~~$x$};
+\node (fx)[circ, below right = of x] {$f(x)$}
+	edge [<-] (x);
+\node (fxmin) [circ, below right = of fx] {\footnotesize{$\hat x_{min}$}}
+	edge [<-] (fx);
+\node (inp) [layer, node distance = 1.8cm, below = of fx] {input size}
+	edge [<-] (fx);
+\draw (inp.north-|x.south) [<-] to (x);
+\draw (inp.north-|fxmin.south) [<-] to (fxmin);
+\node (nl1) [NL, below = of inp] {non-linearity}
+	edge [<-] (inp);
+\node (h) [layer, below = of nl1] {hidden size}
+	edge [<-] (nl1);
+\coordinate [left = of h] (h1);
+\coordinate [below = of h1] (h2);
+\node (nl2) [NL, below = of h] {non-linearity}
+	edge [<-] (h);
+\draw (nl2.210) [out = 230, in = 270, looseness = 1.7] to (h2);
+\draw (h2) [out = 90, in = 90, ->, looseness = 1.7] to (h.160);
+
+\node (o1) [layer, below = of nl2] {output size}
+	edge [<-] (nl2);
+\node (nl3) [NL, below = of o1] {non-linearity}
+	edge [<-] (o1);
+\node (o2) [layer, below = of nl3] {output size}
+	edge [<-] (nl3);
+\node (noise) [NL, fill = black!20, below = of o2, label = {[red] right: for exploration}] {gaussian noise}
+	edge [<-] (o2);
+\node (ht) [NL, below= of noise] {HardTanh}
+	edge [<-] (noise);
+\node (xmul) [rectangle, fill = black!20, below = of ht] {$x_{max}$}
+	edge [<-] (ht);
+\node (xo) [circ, below = of xmul] {$x_{out}$}
+	edge [<-] (xmul);
+%bounding box
+\node (map)[draw, dashed, red, fit = (xmul) (ht), label = {[red, text width = 4cm] right: mapping [-1 - 1] to the boundaries}] {};
+\node (func)[draw, dashed, red, fit = (inp)(nl1)(x)(fx)(fxmin), label = {[red, text width = 4cm] right: function input}] {};
+\node (locator)[draw, dashed, red, fit = (o1) (nl3)(o2), label = {[red, text width = 4cm] right: location from internal state}] {};
+\node (rnn)[draw, dashed, red, fit = (h) (nl2), label = {[red, text width = 4cm] right: RNN}] {};
+\end{tikzpicture}

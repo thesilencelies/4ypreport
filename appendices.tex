@@ -3,31 +3,73 @@
 \section{Explaination of Code}
 %this section details how the codebase works.
 
-%do I even want to explain how the magic codebase works? - depends on space
+%do I even want to explain how the magic codebase works? - depends on space - probably? - it explains where all those hours went
+\subsection{Summary of code for the Magic the Gathering agent}
+Due to the emulator being written in Java, the agent to play M:tG was also written in Java, which isn't ideal for optimisation. The neural networks library found did in fact have a c based back end and GPU implementation, though that turned out not to be the performance bottleneck anyway. The neural networks library was called neuralnetworks, found at https://github.com/ivan-vasilev/neuralnetworks. The emulator used is called forge, found at http://www.slightlymagic.net/wiki/Forge. The full code for this agent can be found at https://github.com/thesilencelies/LearnForge. 
+
+There were several adjustments to the overall infrastructure of the emulator to allow the additional option of a learned-ai player, rather than just human or the hard coded ai, which needed to be kept so that is could be used to train the learning agent. Asides from those, all the additional materials can be found in the module titled learnedai. This uses entities titled Q-cards to store the assessment of each card, then combines them together into a matrix that can be fed to the neural network that assesses play states. The elements that model the future states and choose the highest scoring actions already existed, and were largely left as is, with the main adjustment being the replacement of the heuristic score system with the neural network.
+The neural network is preserved because it is a static entity, and it was manoeuvred around the memory leak by regularly saving and loading the network, though that did delete the saved experiences from it's experience replay.
+
 \subsection{Code for the Function Optimiser}
+%explain what they do as well - space doesn't seem to be too tight right now
 The whole system is based on the implementation of Recurrent Visual Attention from \cite{Torch:RVA}. It's written in lua using the torch nn libraries, and additionally depends on the dpnn and rnn packages. All of the files can be found in the package rl-optim, though the init file will need modifying.
 
-the following sections detail the exact behaviour and interface of each of the additional torch objects created for this project
+The following sections detail the exact behaviour and interface of each of the additional torch objects created for this project. Everything has been coded so that it can be ran in a batched manner.
+
 \subsubsection{FunctionData}
-This object is a dataSource for the dpnn experiment. It contains a function that takes an input of some parameters and a coordinate of the same dimension and returns a scalar.this function can be accessed by calling \emph{getFunction()} It defines a series of parameters and calculates the minimum value for the function given those parameters using the algorithm defined in figure~\ref{alg:functiongen}. These are used as the inputs and targets for the experiment.
+This object is a dataSource for the dpnn experiment. It contains a function that takes an input of some parameters and a coordinate of the same dimension and returns a scalar. This function can be accessed by calling \emph{getFunction()} It defines a series of parameters and calculates the minimum value for the function given those parameters using the algorithm defined in figure~\ref{alg:functiongen}. These are used as the inputs and targets for the experiment, the targets being necessary to calculate the reward. Unlike with standard dataSources, the data is only created at runtime, to a quantity specified by ``trainDataSize'' and ``testDataSize'' parameters.
 
 \subsubsection{FunctionInput}
-This is an NN module which takes a reference to a function at it's creation. This function should take a set of parameters and a coordinate of the same dimension as the parameters as an input and return a scalar value. When \emph{updateOutput} is called, the expected inputs are the batch of function parameters, the new coordinate to check, and it's previous output for this batch, or an empty tensor if this is the first time. It returns a tensor containing the minimum value received so far, the coordinate of the minimum value checked, the last coordinate checked, and the value it received for it. 
+This is an NN module which takes a reference to a function at it's creation. This function should take a set of parameters and a coordinate of the same dimension as the parameters as an input and return a scalar value. It also requires the normalisation constant being used to be given to it, so that it can normalise the output of the function.
+
+ When \emph{updateOutput} is called, the expected inputs are the batch of function parameters, the new coordinate to check, and it's previous output for this batch, or an empty tensor if this is the first time. It runs the given coordinates through the function it was given at initialisation, then it returns a tensor containing the minimum value received so far from the function, the coordinate that was input to the minimum value, the last coordinate checked, and the value it received for it.
+
+When \emph{updateGradInput} is called it returns two tensors, one for the parameters, which is an empty matrix because the parameters are hidden from the rest of the model, and one for the location, which is the section of the gradient given to it that corresponded to the last location checked.
+
+It has no internal parameters, so it's effects are unchanged by the training.
 \subsubsection{RLFeedback}
-This is an observer from dpnn that calculates the total reward the agent received across the task and the agent's accuracy. These parameters are useful both for analysis and to enable early stopping.
-\subsubsection{RLoptreward}%whats the correct name for this?
+This is an observer from dpnn that calculates the total reward the agent received across the task and the agent's accuracy. These parameters are useful both for analysis and to enable early stopping. It has to be told whether or not to use log rewards on initialisation, and otherwise the behaviour is standard.
+
+\subsubsection{OptimReward}%whats the correct name for this?
 This function observes the output of the whole network, calculates the reward, subtracts the baseline and transmits the reward to the REINFORCE modules.
 
+More specifically, this is a Criterion which takes as additional inputs the network being used (so that it can transmit the reward to it), the dimensionality of the function being explored (so that it can return tensors of the correct size), the normalisation constant being used, so that the targets can be normalised correctly, and whether to give log rewards and/or rewards on every step.
+
+When \emph{updateOutput} is called,  it compares the output of the agent with the target and calculates the reward that it should receive.
+
+When \emph{updatedGradInput} is called, it checks it's inputs for a second input that is the baseline reward, then reduces the rewards by that value before transmitting them back to the agent by calling \emph{reinforce} on the module. The returned gradient is also the rewards so that the baseline reward can be learned.
+
 \subsubsection{reinforceEveryStep}
-This receives the reward received by the agent not only as if it stopped st the last step, but as if it had stopped after each step. Then it creates the gradient for each step based on that step's rewards.
+A modification of ReinforceNormal from dpnn, This receives the reward received by the agent not only as if it stopped at the last step, but as if it had stopped after each step. Then it creates the gradient for each step based on that step's rewards. To do this, it has to receive a call from the recursor telling it which step it is at using the function \emph{declareStepNo(stepNo.)}. In the forwards direction, this module adds Gaussian noise to it's input if it's training, but not if it is testing.
+
 \subsubsection{RecurrentFunctionOptim}
-this module is a recurrent wrapper that handles the way the data is passed across the network. It takes as inputs on instantiation the recurrent network that estimates the internal state, the network that estimates the next location based on the internal state and the module that handles the function calculation along with some parameters. It runs the algorithm for a fixed number of steps and then returns the concatenation of all the outputs of the function module.
+This module is a recurrent wrapper that handles the way the data is passed across the network, based upon RecurrentAttention from the rnn package. It takes as inputs on instantiation the recurrent network that estimates the internal state (self.rnn), the network that estimates the next location based on the internal state (self.action) and the module that handles the function calculation along with some parameters (self.minvalmod). It runs the algorithm for a fixed number of steps and then returns the concatenation of all the outputs of the function module.
+
+More specifically, at each forwards step it asks self.action for the next location to check based on the current internal state of self.rnn, passes that value through self.minvalmod, then feeds the output from that into self.rnn to produce a new internal state. This is repeated until it runs out of steps, and the final output is the concatenation of all of the outputs from self.minvalmod, to allow for everystep or other unusual reward schemes.
+
+On the backwards pass it handles the back-propagation through time for all of it's elements and the updates for their parameters.
+
+\subsubsection{EqualSearch, PatternSearch and AmoebaSearch}
+All of these objects are designed to produce the same type of output as RecurrentFunctionOptim, using the same number of limited calls to self.minvalmod, but instead of using internal neural networks to decide what location to check next, they use a hardcoded algorithm to choose the next location. With EqualSearch it divides the search space into even sections and essentially ignores the output of self.minvalmod. PatternSearch maintains a centre coordinate, which it then checks around a fixed distance in each dimension, before moving  the centre to the new lowest observed value, or reduces the search distance if no new lowest value is observed. The amoeba search attempts to impliment the simplex algorithm, though it is a little more complex as the simplex algorithm often wants to make multiple function calls per step, which means that often the steps of the simplex algorithm are spread across several steps that the agent takes.
+
 
 \subsubsection{ApprenticedRFO}
 This module is based on RecurrentFunctionOptim, but it first implements an example based gradient descent training - teaching the modules to attempt to replicate the output of a pattern search. It has two additional function calls beyond the standard module function calls - \emph{beFree()} and \emph{backToSchool()} which turn this "apprenticed" behaviour on and off.
 
+Whilst running the apprenticed mode, in addition to the standard forwards pass from RecurrentFunctionOptim, it also produces a separate internal value called tutor, which is the equivalent results that would be produced by a pattern search agent were they to start at the same location as the agent under training, which is calculated using the same code as that ran in PatternSearch. Then, as long as the apprenticed behaviour is on, the gradient given to the agent isn't based upon the reward received (although the early stopping is), but instead on the difference between it's output and the tutors for that step. In order to achieve this, a slightly modified form of ReinforceNormal was made that had the additional function enableReinforce(bool) which told it whether or not to add noise and produce a gradient based on the reward, or simply pass through it's inputs and gradients.
+
+When not running the apprenticed mode, it is nearly identical to RecurrentFunctionOptim with the exception that it has a randomised starting location.
+
 \subsubsection{DetRFO}
-This module takes the same inputs as recurrent function Optim, plus a state generation and value-from-state network for the critic. It implements an actor critic approach to the learning problem, along with a deterministic policy gradient.
+This module takes the same inputs as RecurrentFunctionOptim, plus a state generation (self.Qstate) and value-from-state-action (self.Qact) network for the critic. It implements an actor critic approach to the learning problem, along with a deterministic policy gradient, following the algorithms laid out in \cite{lillicrap2015continuous}. It expects it's function reinforce to be called by some criterion telling it what reward it has received.
+
+Upon initialisation, it creates copies of self.action, self.Qstate and self.Qact to be the target networks. These networks do not have their parameters updated using the standard learning rules, rather they are updated to track the values from the originals using the update step \begin{equation}
+\theta' \gets \tau \theta + (1 - \tau)\theta'
+\end{equation} Where $\tau$ is very small.
+
+\emph{updateOutput} is just like with RecurrentFunctionOptim. However, when \emph{updateGradInput} is called, first it saves the last experience, inputs, actions and rewards, into it's experience replay memory, then it loads a new batch of experiences at random from the experience replay. Then it runs the critic networks on the experiences, and produces the gradient with which to update the actor networks. Then it produces the gradients for the critic to update, using a target generated from the bellman step for that experience, that is \begin{equation}
+Q(s,a;\theta) = r + \gamma Q(s,a';\theta')
+\end{equation} where $a'$ is the action produced by the target actor network for that state. Then it creates the internal state for that experience in the actor networks, before performing the back propagation for the actor, using the deterministic policy gradient.
 
 
 

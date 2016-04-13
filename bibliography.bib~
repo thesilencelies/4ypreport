@@ -60,7 +60,7 @@ editor="Chen, Chin-Sheng
 and Filipe, Joaquim
 and Seruca, Isabel
 and Cordeiro, Jos{\'e}",
-chapter="an application of non-linear programming to train recurrent neural networks in time series prediction problems",
+chapter="AN APPLICATION OF NON-LINEAR PROGRAMMING TO TRAIN RECURRENT NEURAL NETWORKS IN TIME SERIES PREDICTION PROBLEMS",
 title="Enterprise Information Systems VII",
 year="2006",
 publisher="Springer Netherlands",
@@ -146,7 +146,7 @@ url="http://dx.doi.org/10.1007/978-1-4020-5347-4_11"
 @misc{rnnslides,
    author = "Ilya Kuzovkin",
    title = {Article overview: Unsupervised Learning of Visual Structure Using Predictive Generative Networks},
-   url = {http://www.slideshare.net/iljakuzovkin/article-overview-unsupervised-learning-of-visual-structure-using-predictive-generative-networks},
+  % url = {http://www.slideshare.net/iljakuzovkin/article-overview-unsupervised-learning-of-visual-structure-using-predictive-generative-networks},
   note = "[Online, accessed 21-Feb-2016]",
    year = "2016"
 }

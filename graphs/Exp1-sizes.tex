@@ -12,10 +12,14 @@
     %grid style=dashed,
 ]
   \draw [color = black] (axis cs: -20,1) to node [very near start, above] {\footnotesize{pattern reward}} (axis cs:300,1);
-\addplot table [ mark=none,x = epoch, y= norm test rew, col sep=comma] {graphs/exp1/opt1sizeit1.csv};
-\addplot table [ mark=none,x = epoch, y=norm test rew, col sep=comma] {graphs/exp1/opt1sizeit2.csv};
-\addplot table [ color = blue, mark=none,x = epoch, y=norm test rew, col sep=comma] {graphs/exp1/opt1sizeit3.csv};
-    \legend{32, 64, 128, 256, 512, 1024,}
+\addplot [mark=none, color = blue] table [ x = epoch, y= norm test rew, col sep=comma] {graphs/exp1/opt1sizeit1.csv};
+\addplot [mark=none, color = red] table [ x = epoch, y=norm test rew, col sep=comma] {graphs/exp1/opt1sizeit2.csv};
+\addplot [ mark=none,color = green] table [x = epoch, y=norm test rew, col sep=comma] {graphs/exp1/opt1sizeit3.csv};
+\addplot [mark=none, color = black] table [ x = epoch, y=norm test rew, col sep=comma] {graphs/exp1/opt1sizeit4.csv};
+\addplot [mark=none,color = blue, style = dashed]table [ x = epoch, y=norm test rew, col sep=comma] {graphs/exp1/opt1sizeit5.csv};
+\addplot [ mark=none, color = red, style = dashed] table [x = epoch, y=norm test rew, col sep=comma] {graphs/exp1/opt1sizeit6.csv};
+\addplot [mark=none, color = black, style = dashed] table [ x = epoch, y=norm test rew, col sep=comma] {graphs/exp1/opt1sizeit7.csv};
+    \legend{32, 64, 128, 256, 512, 1024,2048}
 
 
 
