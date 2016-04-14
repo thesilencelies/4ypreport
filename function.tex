@@ -73,7 +73,7 @@ Given the variance of these polynomials, and in particular how much the reward c
 It was decided that, rather than get the agent to learn how to make the comparisons internally (or potentially learn to interpolate between observed values) that the minimum value observed overall would be worked out externally and fed to the neural network as an additional variable. The idea behind this decision is that this frees up the learning in the network to be devoted to finding the best behaviour for the system, rather than having to additionally use up neurons storing this value and performing the comparison in a potentially dodgy manner. This does remove the opportunity for the agent to learn how to guess what the true minimum would be based on it's observations, but it was decided that such a behaviour would be extremely prone to over fitting and the gains from it would not be worth the cost in terms of the additional learning overheads. Furthermore such an output would simply learn to return lower numbers under the current reward scheme, which means that the reward would also need to consider the x value of the optimum, which had already been discarded.
 
 \subsection{Recurrent Function Optimisation}
-The first design that was attempted was based on the work in \cite{RVA}. It used the overall structure shown in figure~\ref{fig:RFOarch} The idea is that the internal state of the recurrent neural network would be able to describe the state so that the feed-forwards network can decide what location to look at next. The network would be trained directly with REINFORCE, so only the rewards are needed, not any critic or similar structure. The final output is the minimum value observed, which is tracked at each function evaluation step, and also passed to the RNN to help describe the state space better, as then it doesn't have to learn to do that as well. The architecture that was designed can be seen in fig~\ref{fig:RFOarch}. On top of that structure, the average reward $b$ was also learned as a parameter of the network so that the variance reduction in REINFORCE could be used. One crucial difference is that, unlike with \cite{RVA}, there is no classification, so no classification loss to train the RNN with, so it is only being trained by the REINFORCE module.
+The first design that was attempted was based on the work in \cite{RVA}. It used the overall structure shown in figure~\ref{fig:RFOarch} The idea is that the internal state of the recurrent neural network would be able to describe the state so that the feed-forwards network can decide what location to look at next. The network would be trained directly with REINFORCE, so only the rewards are needed, not any critic or similar structure. The final output is the minimum value observed, which is tracked at each function evaluation step, and also passed to the RNN to help describe the state space better, as then it doesn't have to learn to do that as well. The recurrence for the architecture that was designed can be seen in fig~\ref{fig:RFOarch}. On top of that structure, the average reward $b$ was also learned as a parameter of the network so that the variance reduction in REINFORCE could be used. One crucial difference is that, unlike with \cite{RVA}, there is no classification, so no classification loss to train the RNN with, so it is only being trained by the REINFORCE module.
 
 \begin{figure}
 \centering
@@ -90,7 +90,7 @@ Two different forms for the loss function were tried - $Loss(f(\boldsymbol{x}), 
 
 One other variation that was attempted to try and improve the results, based on how the agent in \cite{RVA} was trained, was to calculate what the reward would be at every step, and use the gradient based on these to train the agent instead. The results are labelled everystep below, and generally seemed to do worse. The key difference seems to be that the output is based on the lowest observed value, rather than it's current estimate of the truth at each step, so it ended up producing large penalties for what were potentially reasonable exploratory steps, and so producing more nuisance gradients that drove the policy away from optimality.
 
-The exact setup chosen for the experimentation, in terms of number of layers and location of non-linearities, is detailed in figure~\ref{fig:exactsetup}.
+The exact setup chosen for the experimentation, in terms of number of layers and location of non-linearities, is detailed in figure~\ref{fig:exactsetup}. Each white rectangle is a fully connected layer with size equal to the variable written on it. 
 \begin{figure}
 \centering
 \input{diagrams/exactsetup}
@@ -98,33 +98,13 @@ The exact setup chosen for the experimentation, in terms of number of layers and
 \label{fig:exactsetup}
 \end{figure}
 \subsubsection{RFO Results}
-%1d results  - need to produce these
 There were four main experiments performed: a comparison of the impact of number of hidden units in the network to performance, a comparison between using ReLU and HardTanh for the transfer functions, a comparison of giving the reward at every step or only the first, and comparison of the agent's performance with functions of different dimensions.
 
-For the size experiments, the number of neurons in the input and location layers was half that of the number in the RNN, and all other parameters were kept constant. %explain and discuss the results
-%what about this new run with different hyperparams?
+In each of the charts, the normalised performance on the set of 20480 test functions is used. So a value of 0 indicates that the agent received the same average reward across the tests set as an agent that simply divides the search space evenly, while a score of 1, marked by the line labelled pattern search, indicates that the agent achieved the same average reward as a pattern search agent on the training data. The aim for this project would be to produce an agent who can produce a normalised score significantly higher than 1. Each chart lists the agents  normalised reward on the test data as a function of training epoch, so that both final result and learning rate can be examined.
 
-Both the everystep and the ReLU vs HardTanh experiments ran the same parameters and expanding number of neurons as the %depends what I want to present
+Unless otherwise specified, the functions the agent was learning on were a series of 1 dimensional quartics, defined as 1D3P (because it has 3 stationary points). 
 
-
-
-
-%detail exactly how these experiments were ran. - what was changed, by how much etc.
-\begin{figure}
-%use the 2d points plot with colours for how high it is
-%do I pgfplots this as well?
-\centering
-\caption{Points checked by the agent and their return values}
-\end{figure}
-
-\begin{figure}
-\centering
-\input{graphs/Exp1-sizes}
-\caption{Comparison of Agent learning for different hidden sizes}
-\label{fig:exp1rfo}
-\end{figure}
-
-
+In figure~\ref{fig:opt1full} the comparison between the agent's performance on the training and the validation data can be seen. Unlike with many supervised learning problems, the two seem well coupled, if both subject to some degree of stochasticity. The final accuracies obtained are somewhat disappointing, though as can be seen in figure~\ref{fig:opt1norm} the error rate at best does reach that of the pattern search agent. Also visible in figure~\ref{fig:opt1norm} is that the performance on the testing and validation data sets are near identical. Due to this, in all further graphs, only the test reward is considered.
 
 \begin{figure}
 \centering
@@ -139,10 +119,53 @@ Both the everystep and the ReLU vs HardTanh experiments ran the same parameters 
 \label{fig:opt1norm}
 \end{figure}
 
+%I should probably only use on of the two hyperparam setups
+
+%detail the numbers used in the experiments and explain what the graphs mean - you can do this now
+
+From figure~\ref{fig:locexp} the chronological behaviour of the agent becomes apparent. It checks a spread of locations around the best point observed so far, both those close so that it can get a better value, but also those progressively further away in case there is a better minimum there. Although the behaviour seems slightly random, in the second path it returns to an area that clearly contains points that are worse those it had found, the policy performs very well, consistently getting a normalised score of 1.8, with an test error rate of less than 1\%.
+
+%1d results  - need to produce these
+
+
+\emph{there will be data analysis here once I have the data - I'm retaking because I get much better results when I change one of the parameters}
+
+
+%detail exactly how these experiments were ran. - what was changed, by how much etc.
+\begin{figure}
+\centering
+\input{graphs/demopoints}
+\caption{Points checked by the agent and their return values}
+\label{fig:locexp}
+\end{figure}
+
+\begin{figure}
+\centering
+\input{graphs/Exp1-sizes}
+\caption{Comparison of Agent learning for different hidden sizes}
+\label{fig:exp1rfo}
+\end{figure}
+
+\begin{figure}
+\centering
+\input{graphs/Exp1-sizes-newp}
+\caption{Comparison of Agent learning for different hidden sizes with alternative hyper parameters}
+\label{fig:exp1rfo2}
+\end{figure}
+
+
+
 \subsubsection{Issues and Evaluation} %needs more here
+
+%like, a lot more
+
 Two key problems seem to be hampering the behaviour of this agent. One is that it is very easy for it to get stuck in local minima, whereby the local gradient of the policy is zero, but it is not at the optimum policy. Although that can be reduced by having a larger training dataset, it cannot be avoiding within this architecture. This problem is further exacerbated by the fact that there is nothing guiding the formation of the internal state except for the reinforce, which means that potentially it isn't retaining various pieces of salient information that would allow it to make better decisions.
 
-It should be noted that in general recurrent neural networks are particularly susceptible to local minima, as they produce chaotic responses to changes in the error surface. \cite{Cuéllar2006}.
+It should be noted that in general recurrent neural networks are particularly susceptible to local minima, as they produce chaotic responses to changes in the error surface. \cite{Cuéllar2006}, and this was particularly apparent during testing, where sometimes the agent would simply fail to find anything useful during training. %give example if you have one
+
+It was found out during the first round of experimentation that the early stopping value was probably too low, as the agent would spend a long time with a low reward that wasn't changing very much until suddenly it would burst forth with a large improvement, and the tight early stopping boundary was preventing larger networks from being able to reach that point.
+
+That all said, the agent does manage to learn a policy that consistently outperforms the pattern search with several of the networks in figure~\ref{fig:exp1rfo}, and as the number of dimensions increases, %we'll find out.
 
 \begin{figure}
 \centering
@@ -177,17 +200,17 @@ It should be noted that in general recurrent neural networks are particularly su
 \subsection{Apprenticed RFO}
 One suggestion to improve the performance, based on the work in \cite{alphaGo}, was to train the agent to first replicate ``expert'' output, then further improve the policy using reinforcement learning as before. The idea is that by first moving to a space where it is making good actions already, it would escape local minima and have a more defined manner in which it would learn to define the state space. The first key challenge with this is to choose what sort of agent it should learn from. Initially it was proposed to get it to learn from a simplex agent, but the implementations of simplex agents within the systems constraints were found to be consistently outperformed by the pattern search agent. So it was decided to use the pattern search agent instead.
 
-One possible advantage of this set up for training the agent is that it makes training the agent for an expensive poorly understood task a lot easier. Instead of either training the agent directly on the expensive task, which would take a very long time and lots of computation, instead output data from previously used optimisers could be used to train the agent along with some loose approximation based on the data from those, which should reduce how much computational time the agent has to spend on ``live'' examples.
+One possible advantage of this set up for training the agent is that it makes training the agent for an expensive task without a decent model for it a lot easier. Instead of either training the agent directly on the expensive task, which would take a very long time and lots of computation, instead output data from previously used optimisers could be used to train the agent along with some loose approximation based on the data from those, which should reduce how much computational time the agent has to spend on ``live'' examples.
 
 For each training function the agent produced an output, and in parallel the pattern search agent produced it's own output. Mean squared error loss was used to produce the gradient, where the error was defined as the difference between the output of the agent for that step and the pattern searcher.
-
-The agent learned to produce something similar to the output after a reasonable number of iterations, at which point it was achieving only slightly worse scores than the pattern search. Then when it was switched to reinforcement learning it produced a temporary drop in performance, followed by a significant improvement, exceeding that of the pure RL agent. However this result seems to be unstable, as upon further iterations it produces decaying performance. The improvement in performance of the agent after the initial batch could be attributed to it learning to explore better, as in all the cases the function used was non-convex.
 
 In order for it to produce adequate output to match the performance of the tutor, a number of hyper parameters had to be adjusted as well, which was useful for tuning the hyper parameters for the less well defined straight RL case.
 
 \subsubsection{Apprenticed RFO results}
 The same set of experiments was ran with the apprenticed RFO as with the pure reinforcement learned agent. %compare both how well it does internally, and to RFO
+The graphs are normalised in the same way, and the pattern search level is again indicated. Additionally, the step where the apprenticeship was turned off and the agent swapped to reinforcement learning is marked on each chart with a dot at that point.
 
+\emph{there will be data analysis here once I have the data}
 \begin{figure}
 \centering
 \input{graphs/Exp1-sizes-app}
@@ -195,7 +218,19 @@ The same set of experiments was ran with the apprenticed RFO as with the pure re
 \label{fig:exp1apprfo}
 \end{figure}
 
-%also need one comparing opt to val for this too
+
+\begin{figure}
+\centering
+\input{graphs/Exp1-sizes-app-newp}
+\caption{Comparison of Apprenticed RFO learning for different hidden sizes with new parameters}
+\label{fig:exp1apprfo}
+\end{figure}
+
+\subsubsection{Issues and Evaluation}
+The apprenticed agents produced consistently higher rewards across the board than the pure RL agents did. However, there are several unusual trends worth pointing out. For larger networks, it seems that the actual rewards received during apprenticeship actually decreased as it went along, though it's worth remembering that the reward is not the parameter it was learning to optimise during that stage. This is probably because with the larger networks the initial pass produces something that spreads out quite evenly across the space, then it learns to focus in, but tends to over fit, resulting in poor rewards.
+
+The other interesting trend is the agent learned to produce something similar to the output after a reasonable number of iterations, at which point it was achieving only slightly worse scores than the pattern search. Then when it was switched to reinforcement learning it produced a temporary drop in performance, followed by a significant improvement, exceeding that of the pure RL agent. However this result seems to be unstable, as upon further iterations it produces decaying performance. The improvement in performance of the agent after the initial batch could be attributed to it learning to explore better, as in all the cases the function used was non-convex, so the pattern search will often end up in the worse of the two minima.
+
 
 \subsection{Deterministic RFO}
 \label{sec:detrfo}

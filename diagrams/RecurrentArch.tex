@@ -9,13 +9,13 @@
 	edge[-](jt);
 \node (Ft1) [rectangle, draw, fill = black!20, minimum width = 1cm, above = of It] {$f(\boldsymbol{x}_{t-1})$}
 	edge[->](It);
-\node (mt1) [left of = It, xshift = -\shift cm] {$M_{t-1}$}
+\node (mt1) [left of = It, xshift = -\shift cm] {$\hat{\boldsymbol{x}}^{min}_{t-1}$}
 	edge [->] (It);
 \node (xt1) [left of = Ft1, xshift = -\shift cm] {$\boldsymbol{x}_{t-1}$}
 	edge [->] (Ft1);
 \node (ht) [rectangle, draw, text width = \roundwidth ,minimum height = 2.5cm, xshift = 0.5cm, right = of jt] {$h_t$}
 	edge [<-] (jt);
-\node (mt) [above = of ht,  circle, draw, text width =\roundwidth] {$M_t$}
+\node (mt) [above = of ht,  circle, draw, text width =\roundwidth] {$\hat{\boldsymbol{x}}^{min}_t$}
 	edge [<-] (It.east);
 \node (Lt) [below = of ht, rectangle, minimum width = 1.3cm , draw] {$L_t$}
 	edge[<-] (ht);
@@ -29,7 +29,7 @@
 	edge[->](It);
 \node (ht) [rectangle, draw, minimum height = 2.5cm, text width =\roundwidth, xshift = 0.5cm, right = of jt] {$h_{t+1}$}
 	edge [<-] (jt);
-\node (mtp) [above = of ht,  circle, draw, text width =\roundwidth] {$M_{t+1}$}
+\node (mtp) [above = of ht,  circle, draw, text width =\roundwidth] {$\hat{\boldsymbol{x}}^{min}_{t+1}$}
 	edge [<-] (It.east);
 \node (Lt) [below = of ht, rectangle, minimum width = 1.3cm , draw] {$L_{t+1}$}
 	edge[<-] (ht);

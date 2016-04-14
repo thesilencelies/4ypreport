@@ -1,4 +1,9 @@
 \appendix
+\newpage
+\section{Risk Assessment}
+%\includegraphics{pictures/riskassessment}
+\newpage
+
 
 \section{Explaination of Code}
 %this section details how the codebase works.
@@ -50,13 +55,13 @@ More specifically, at each forwards step it asks self.action for the next locati
 On the backwards pass it handles the back-propagation through time for all of it's elements and the updates for their parameters.
 
 \subsubsection{EqualSearch, PatternSearch and AmoebaSearch}
-All of these objects are designed to produce the same type of output as RecurrentFunctionOptim, using the same number of limited calls to self.minvalmod, but instead of using internal neural networks to decide what location to check next, they use a hardcoded algorithm to choose the next location. With EqualSearch it divides the search space into even sections and essentially ignores the output of self.minvalmod. PatternSearch maintains a centre coordinate, which it then checks around a fixed distance in each dimension, before moving  the centre to the new lowest observed value, or reduces the search distance if no new lowest value is observed. The amoeba search attempts to impliment the simplex algorithm, though it is a little more complex as the simplex algorithm often wants to make multiple function calls per step, which means that often the steps of the simplex algorithm are spread across several steps that the agent takes.
+All of these objects are designed to produce the same type of output as RecurrentFunctionOptim, using the same number of limited calls to self.minvalmod, but instead of using internal neural networks to decide what location to check next, they use a hard coded algorithm to choose the next location. With EqualSearch it divides the search space into even sections and essentially ignores the output of self.minvalmod. PatternSearch maintains a centre coordinate, which it then checks around a fixed distance in each dimension, before moving  the centre to the new lowest observed value, or reduces the search distance if no new lowest value is observed. The amoeba search attempts to implement the simplex algorithm, though it is a little more complex as the simplex algorithm often wants to make multiple function calls per step, which means that often the steps of the simplex algorithm are spread across several steps that the agent takes.
 
 
 \subsubsection{ApprenticedRFO}
 This module is based on RecurrentFunctionOptim, but it first implements an example based gradient descent training - teaching the modules to attempt to replicate the output of a pattern search. It has two additional function calls beyond the standard module function calls - \emph{beFree()} and \emph{backToSchool()} which turn this "apprenticed" behaviour on and off.
 
-Whilst running the apprenticed mode, in addition to the standard forwards pass from RecurrentFunctionOptim, it also produces a separate internal value called tutor, which is the equivalent results that would be produced by a pattern search agent were they to start at the same location as the agent under training, which is calculated using the same code as that ran in PatternSearch. Then, as long as the apprenticed behaviour is on, the gradient given to the agent isn't based upon the reward received (although the early stopping is), but instead on the difference between it's output and the tutors for that step. In order to achieve this, a slightly modified form of ReinforceNormal was made that had the additional function enableReinforce(bool) which told it whether or not to add noise and produce a gradient based on the reward, or simply pass through it's inputs and gradients.
+Whilst running the apprenticed mode, in addition to the standard forwards pass from RecurrentFunctionOptim, it also produces a separate internal value called tutor, which is the equivalent results that would be produced by a pattern search agent were they to start at the same location as the agent under training, which is calculated using the same code as that ran in PatternSearch. Then, as long as the apprenticed behaviour is on, the gradient given to the agent isn't based upon the reward received (although the early stopping is), but instead on the difference between it's output and the tutors for that step. In order to achieve this, a slightly modified form of ReinforceNormal was made that had the additional function \emph{enableReinforce(bool)} which told it whether or not to add noise and produce a gradient based on the reward, or simply pass through it's inputs and gradients.
 
 When not running the apprenticed mode, it is nearly identical to RecurrentFunctionOptim with the exception that it has a randomised starting location.
 

@@ -3,13 +3,13 @@
 
 \node (x) [circle, draw, below right = of Ft1] {\small{$x_{\footnotesize{n+1}}$}};
 
-\node (xn) [circle, draw, node distance = 0.5cm, left = of x] {$x_{n}$}
-	edge [->] (Ft1.305);
+\node (xn) [circle, draw, node distance = 0.5cm, left = of x] {$x_{n}$};
+\draw (xn.north) [->] to (Ft1.south -| xn.north);
 
 \node (RFO) [rectangle, draw, below left = of x, minimum width = 2cm, minimum height = 1.3cm] {RFO}
-	edge [->] (x)
-	edge [<-, vh path] (Ft1.240);
-\draw (RFO.north) [->, hv path] to (xn);
+	edge [->] (x);
+\draw (RFO.north -| Ft1.230) [<-] to (Ft1.230);
+\draw (RFO.north -| xn.south) [->] to (xn);
 
 \node [rectangle, draw, above right = of Ft1, minimum height = 2cm] (s) {S}
 	edge [<-, hv path] (Ft1);

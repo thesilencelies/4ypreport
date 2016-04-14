@@ -7,14 +7,17 @@ vh path/.style={to path={|- (\tikztotarget)}}
 ]
 %create the nodes and link them with arrows
 \node (x) at (0,0) [circ] { ~~$x$};
-\node (fx)[circ, below right = of x] {$f(x)$}
+\node (fx)[circ, below right = of x, label = 80 : \small{normalised}] {$f(x)$}
 	edge [<-] (x);
 \node (fxmin) [circ, below right = of fx] {\footnotesize{$\hat x_{min}$}}
 	edge [<-] (fx);
-\node (inp) [layer, node distance = 1.8cm, below = of fx] {input size}
+\node (inm) [rectangle, minimum width  = 3.5cm, minimum height = 0.8cm, fill = black!20, node distance = 1.8cm, below = of fx] {$\times \frac{1}{x_{max}}$}
 	edge [<-] (fx);
-\draw (inp.north-|x.south) [<-] to (x);
-\draw (inp.north-|fxmin.south) [<-] to (fxmin);
+\draw (inm.north-|x.south) [<-] to (x);
+\draw (inm.north-|fxmin.south) [<-] to (fxmin);
+
+\node (inp) [layer, below = of inm] {input size}
+	edge [<-] (inm);
 \node (nl1) [NL, below = of inp] {non-linearity}
 	edge [<-] (inp);
 \node (h) [layer, below = of nl1] {hidden size}
@@ -36,7 +39,7 @@ vh path/.style={to path={|- (\tikztotarget)}}
 	edge [<-] (o2);
 \node (ht) [NL, below= of noise] {HardTanh}
 	edge [<-] (noise);
-\node (xmul) [rectangle, fill = black!20, below = of ht] {$x_{max}$}
+\node (xmul) [rectangle, fill = black!20, below = of ht] {$\times x_{max}$}
 	edge [<-] (ht);
 \node (xo) [circ, below = of xmul] {$x_{out}$}
 	edge [<-] (xmul);

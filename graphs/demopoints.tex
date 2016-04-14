@@ -1,0 +1,52 @@
+
+\begin{tikzpicture}
+\begin{axis}[
+    title={Points explored by the agent},
+    name = pointplot,
+    xlabel={timestep},
+    ylabel={coordinate},
+    colorbar,
+    colormap/closeto0,
+    ymajorgrids=true,
+    width = 0.45\textwidth,
+    height = 0.4\textwidth
+    %grid style=dashed,
+]
+\addplot [scatter, point meta= explicit, ultra thick] table [ x =step, y = x, col sep = comma, meta = fx] {graphs/dempoints/demopoints1.csv};
+\end{axis}
+\end{tikzpicture}
+
+\begin{tikzpicture}
+\begin{axis}[
+    title={Points explored by the agent},
+    name = pointplot,
+    xlabel={timestep},
+    ylabel={coordinate},
+    colorbar,
+    colormap/closeto0,
+    ymajorgrids=true,
+    width = 0.45\textwidth,
+    height = 0.4\textwidth
+    %grid style=dashed,
+]
+\addplot [scatter, point meta= explicit, ultra thick] table [ x =step, y = x, col sep = comma, meta = fx] {graphs/dempoints/demopoints2.csv};
+\end{axis}
+\end{tikzpicture}
+
+
+\begin{tikzpicture}
+\begin{axis}[
+    title={Points explored by the agent},
+    name = pointplot,
+    xlabel={timestep},
+    ylabel={coordinate},
+    colorbar,
+    colormap/closeto0,
+    ymajorgrids=true,
+    width = 0.45\textwidth,
+    height = 0.4\textwidth
+    %grid style=dashed,
+]
+\addplot [scatter, point meta= explicit, ultra thick] table [ x =step, y = x, col sep = comma, meta = fx] {graphs/dempoints/demopoints3.csv};
+\end{axis}
+\end{tikzpicture}

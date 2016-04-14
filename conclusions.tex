@@ -1,3 +1,21 @@
+\section{Conclusions}
+Concerning creating an AI to play card games, this project made the following discoveries:
+\begin{itemize}
+\item Due to the existence of an exact model for the immediate effect of any action, and the highly variable available action set, it is typically expedient to produce a function that estimates the value of any state ($V(s)$) and using the model to work out what state one ends up in rather than one that calculates the value of taking an action in some state ($Q(s,a)$).
+\item Games with unbounded numbers of possible entities present complex challenges to the correct analysis of state with a neural network 
+\item Indicator variables across the set of possible cards are not sufficiently expressive for the complexities of most card games
+\end{itemize}
+
+%what is this actually supposed to say?
+
+Concerning using Reinforcement Learning to train a  neural network to optimise general functions, given that the optimum lies within known bounds, it was found that:
+\begin{itemize}
+\item Pure reinforcement learning is sufficient to train a recurrent network to sufficiently represent the state consisting of all previous location-value pairs observed
+\item Using a tutor of some form produces a significant increase in overall agent performance, probably due to moving the initial location of the network away from many unproductive minima in the error surface.
+\item Learned stochastic policies are able to out-perform simple pattern search agents on non-convex polynomial functions.
+\end{itemize}
+Further analysis has to be done concerning the convergence for the learning for such algorithms, but if the snapshot of the network that performed the best on a sufficiently large test data is used, it seems that it is likely to perform well. It is unclear whether the good performance obtained would be replicable in situations where the location of the minimum isn't strictly bounded, however the policy learned seems potentially able to work without the boundaries.
+
 \section{Going forwards}
 There are a number of areas in which this project could be advanced. One, much like with \cite{RVA}, would be to add an extra output value to the agent that would choose whether or not to stop at that iteration. Then the agent could receive a penalty per step taken and learn initially inefficient methods that do produce good results before iteratively improving it's efficiency. This would be particularly useful for more classical optimisation situations, where the precision rather than the computation available is the defined variable.
 
@@ -5,5 +23,4 @@ Another obvious area for improvement would be to modify the deterministic Actor 
 
 Another clear oversight of this paper, due to a lack of available time, is the absence of any comparison to the industry standard Bayesian optimisers. This is probably the most urgent next step, that of creating Bayesian optimisation agent that can be both used for comparison and for tutoring the apprenticed learner a better policy. The impact for the apprenticed learner is likely to be particularly strong, as unlike with the pattern search, the Bayesian optimiser won't be drawn just into exploiting some local minima, but is much better behaved in terms of exploring other likely locations and reasonably reducing the likelihood of it not finding anything.
 
-
-\section{Conclusions}
+One further area to explore would be to test the agent on more advanced functions than just polynomials, for example by checking it's performance on the Rosenbrock function or similar.
