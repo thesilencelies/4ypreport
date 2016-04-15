@@ -1,15 +1,16 @@
 \begin{tikzpicture}[ node distance =1cm, > =  stealth, hv path/.style={to path={-| (\tikztotarget)}}, vh path/.style={to path={|- (\tikztotarget)}},
 layer/.style={ rectangle, draw, minimum width  = 1cm, minimum height = 2cm },
+flayer/.style={ rectangle, minimum width  = 1cm, minimum height = 2cm, fill = black!20 },
 biglayer/.style={ rectangle, draw, minimum width  = 1cm, minimum height = 5cm }]
 
-\node (cards) [layer] at (0,0) {cards};
+\node (cards) [circle, draw] at (0,0) {cards};
 \node (cfeat) [layer, right = of cards] {}
 	edge [<-] (cards); 
 \node (can)[draw, dashed, red, fit = (cards) (cfeat), label = {[name = lab1]for each of their cards}] {};
 
-\node (sum) [layer, right = of cfeat] {sum}
+\node (sum) [flayer, right = of cfeat] {sum}
 	edge [<-] (cfeat);
-\node (max) [layer, above = of sum] {max}
+\node (max) [flayer, above = of sum] {max}
 	edge [<-] (cfeat);
 \node (sfeat) [layer, below = of sum]{};
 \node (gstat) [left = of sfeat] {other game data}

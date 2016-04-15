@@ -123,7 +123,7 @@ In figure~\ref{fig:opt1full} the comparison between the agent's performance on t
 
 %detail the numbers used in the experiments and explain what the graphs mean - you can do this now
 
-From figure~\ref{fig:locexp} the chronological behaviour of the agent becomes apparent. It checks a spread of locations around the best point observed so far, both those close so that it can get a better value, but also those progressively further away in case there is a better minimum there. Although the behaviour seems slightly random, in the second path it returns to an area that clearly contains points that are worse those it had found, the policy performs very well, consistently getting a normalised score of 1.8, with an test error rate of less than 1\%.
+From figure~\ref{fig:locexp} the chronological behaviour of the agent becomes apparent. It checks a spread of locations around the best point observed so far, both those close so that it can get a better value, but also those progressively further away in case there is a better minimum there. Although the behaviour seems slightly random, in the second path it returns to an area that clearly contains points that are worse those it had found, the policy performs very well, consistently getting a normalised score of 1.8, with an test error rate of less than 1\%. Interestingly the agent doesn't seem to be performing any form of gradient based search, but seems to be taking steps in 
 
 %1d results  - need to produce these
 
@@ -153,7 +153,12 @@ From figure~\ref{fig:locexp} the chronological behaviour of the agent becomes ap
 \label{fig:exp1rfo2}
 \end{figure}
 
-
+\begin{figure}
+\centering
+\input{graphs/Exp1-sizes-long}
+\caption{Comparison of Agent learning for different hidden sizes with alternative hyper parameters and longer early stopping}
+\label{fig:exp1rfo2}
+\end{figure}
 
 \subsubsection{Issues and Evaluation} %needs more here
 
