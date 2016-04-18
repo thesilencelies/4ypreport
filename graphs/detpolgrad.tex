@@ -1,0 +1,37 @@
+\begin{tikzpicture}[scale = 0.8]
+
+\begin{axis}[
+    title={Average reward experienced by RFO agent},
+    name = rewplot,
+    xlabel={Epoch},
+    ylabel={Total Reward},
+    legend pos=south east,
+    ymajorgrids=true,
+    %grid style=dashed,
+]
+ 
+\addplot [ color=brown]table [mark=none,x = epoch, y=optrew, col sep=comma] {graphs/detpoltestlong.csv};
+\addplot [color=red] table [ ,mark=none,x = epoch, y=valrew, col sep=comma] {graphs/detpoltestlong.csv};
+    \legend{Training, Validation}
+    
+\end{axis}
+
+\begin{axis}[
+    title={Normalised reward experienced by RFO agent},
+     at = (rewplot.right of south east), anchor = left of south west, 
+    xlabel={Epoch},
+    ylabel={norm. Reward},
+    legend pos=south east,
+    ymajorgrids=true,
+    %grid style=dashed,
+]
+ 
+  \draw [color = black] (axis cs: -20,1) to node [very near start, above] {\footnotesize{pattern reward}} (axis cs:300,1);
+\addplot [ color=blue] table [mark=none,x = epoch, y= norm test rew, col sep=comma] {graphs/detpoltestlong.csv};
+\addplot [ color=red] table [mark=none,x = epoch, y=norm val rew, col sep=comma] {graphs/detpoltestlong.csv};
+    \legend{Testing, Validation}
+    
+\end{axis}
+
+
+\end{tikzpicture}

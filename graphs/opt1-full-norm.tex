@@ -10,6 +10,7 @@
     %grid style=dashed,
 ]
  
+  \draw [color = black] (axis cs: -20,1) to node [very near start, above] {\footnotesize{pattern reward}} (axis cs:300,1);
 \addplot table [ color=blue,mark=none,x = epoch, y= norm test rew, col sep=comma] {graphs/opt1-full-data.csv};
 \addplot table [ color=red,mark=none,x = epoch, y=norm val rew, col sep=comma] {graphs/opt1-full-data.csv};
     \legend{Testing, Validation}
@@ -26,6 +27,7 @@
     %grid style=dashed,
 ]
  
+  \draw [color = black] (axis cs: -20,1) to node [very near start, above] {\footnotesize{pattern reward}} (axis cs:300,1);
 \addplot table [ color=blue,mark=none,x = epoch, y=norm test ER, col sep=comma] {graphs/opt1-full-data.csv};
 \addplot table [ color=red,mark=none,x = epoch, y=norm val er, col sep=comma] {graphs/opt1-full-data.csv};
     \legend{Testing, Validation}

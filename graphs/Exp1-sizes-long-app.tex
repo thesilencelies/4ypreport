@@ -1,0 +1,53 @@
+
+\begin{tikzpicture}
+\begin{axis}[
+    title={Normalised reward experienced by Apprenticed RFO agent for different hidden sizes},
+    name = rewplot,
+    xlabel={Epoch},
+    ylabel={norm. Reward},
+    legend pos=south east,
+    ymajorgrids=true,
+    width = \textwidth,
+    height = 0.7\textwidth
+    %grid style=dashed,
+]
+  \draw [color = black] (axis cs: -20,1) to node [very near start, above] {\footnotesize{pattern reward}} (axis cs:300,1);
+\addplot [mark = *, mark one*=126, color = blue] table [ x = epoch, y= norm test rew, col sep=comma] {graphs/exp1long/opt2tsizeit1.csv};
+\addplot [mark = *, mark one*=126, color = red] table [ x = epoch, y= norm test rew, col sep=comma] {graphs/exp1long/opt2tsizeit2.csv};
+\addplot [mark = *, mark one*=126, color = brown] table [ x = epoch, y= norm test rew, col sep=comma] {graphs/exp1long/opt2tsizeit3.csv};
+
+    \legend{16, 32, 64}
+
+
+
+    
+\end{axis}
+\end{tikzpicture}
+
+
+\begin{tikzpicture}
+\begin{axis}[
+    title={Normalised reward experienced by Apprenticed RFO agent for different hidden sizes},
+    name = rewplot2,
+    xlabel={Epoch},
+    ylabel={norm. Reward},
+    legend pos=south east,
+    ymajorgrids=true,
+    width = \textwidth,
+    height = 0.7\textwidth
+    %grid style=dashed,
+]
+  \draw [color = black] (axis cs: -20,1) to node [very near start, above] {\footnotesize{pattern reward}} (axis cs:300,1);
+  \addplot [mark = *, mark one*=126, color = green] table [ x = epoch, y= norm test rew, col sep=comma] {graphs/exp1long/opt2tsizeit4.csv};
+\addplot [mark = *, mark one*=126, color = blue] table [ x = epoch, y= norm test rew, col sep=comma] {graphs/exp1long/opt2tsizeit5.csv};
+\addplot [mark = *, mark one*=126, color = red] table [ x = epoch, y= norm test rew, col sep=comma] {graphs/exp1long/opt2tsizeit6.csv};
+%\addplot [mark = *, mark one*=126, color = brown] table [ x = epoch, y= norm test rew, col sep=comma] {graphs/exp1long/opt2tsizeit7.csv};
+    \legend{128,256, 512, 1024}
+
+
+
+    
+\end{axis}
+\end{tikzpicture}
+
+

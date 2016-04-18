@@ -125,9 +125,6 @@ In figure~\ref{fig:opt1full} the comparison between the agent's performance on t
 
 From figure~\ref{fig:locexp} the chronological behaviour of the agent becomes apparent. It checks a spread of locations around the best point observed so far, both those close so that it can get a better value, but also those progressively further away in case there is a better minimum there. Although the behaviour seems slightly random, in the second path it returns to an area that clearly contains points that are worse those it had found, the policy performs very well, consistently getting a normalised score of 1.8, with an test error rate of less than 1\%. Interestingly the agent doesn't seem to be performing any form of gradient based search, but seems to be taking steps in 
 
-%1d results  - need to produce these
-
-
 \emph{there will be data analysis here once I have the data - I'm retaking because I get much better results when I change one of the parameters}
 
 
@@ -139,25 +136,25 @@ From figure~\ref{fig:locexp} the chronological behaviour of the agent becomes ap
 \label{fig:locexp}
 \end{figure}
 
-\begin{figure}
-\centering
-\input{graphs/Exp1-sizes}
-\caption{Comparison of Agent learning for different hidden sizes}
-\label{fig:exp1rfo}
-\end{figure}
-
-\begin{figure}
-\centering
-\input{graphs/Exp1-sizes-newp}
-\caption{Comparison of Agent learning for different hidden sizes with alternative hyper parameters}
-\label{fig:exp1rfo2}
-\end{figure}
+%\begin{figure}
+%\centering
+%\input{graphs/Exp1-sizes}
+%\caption{Comparison of Agent learning for different hidden sizes}
+%\label{fig:exp1rfo}
+%\end{figure}
+%
+%\begin{figure}
+%\centering
+%\input{graphs/Exp1-sizes-newp}
+%\caption{Comparison of Agent learning for different hidden sizes with alternative hyper parameters}
+%\label{fig:exp1rfo2}
+%\end{figure}
 
 \begin{figure}
 \centering
 \input{graphs/Exp1-sizes-long}
-\caption{Comparison of Agent learning for different hidden sizes with alternative hyper parameters and longer early stopping}
-\label{fig:exp1rfo2}
+\caption{Comparison of Agent learning for different hidden sizes}
+\label{fig:exp1rfo}
 \end{figure}
 
 \subsubsection{Issues and Evaluation} %needs more here
@@ -203,6 +200,11 @@ That all said, the agent does manage to learn a policy that consistently outperf
 \end{figure}
 
 \subsection{Apprenticed RFO}
+
+%discuss how fair the number of RL steps given is or otherwise
+
+%Why don't they converge to the pattern reward?
+
 One suggestion to improve the performance, based on the work in \cite{alphaGo}, was to train the agent to first replicate ``expert'' output, then further improve the policy using reinforcement learning as before. The idea is that by first moving to a space where it is making good actions already, it would escape local minima and have a more defined manner in which it would learn to define the state space. The first key challenge with this is to choose what sort of agent it should learn from. Initially it was proposed to get it to learn from a simplex agent, but the implementations of simplex agents within the systems constraints were found to be consistently outperformed by the pattern search agent. So it was decided to use the pattern search agent instead.
 
 One possible advantage of this set up for training the agent is that it makes training the agent for an expensive task without a decent model for it a lot easier. Instead of either training the agent directly on the expensive task, which would take a very long time and lots of computation, instead output data from previously used optimisers could be used to train the agent along with some loose approximation based on the data from those, which should reduce how much computational time the agent has to spend on ``live'' examples.
@@ -218,35 +220,64 @@ The graphs are normalised in the same way, and the pattern search level is again
 \emph{there will be data analysis here once I have the data}
 \begin{figure}
 \centering
-\input{graphs/Exp1-sizes-app}
+\input{graphs/Exp1-sizes-long-app}
 \caption{Comparison of Apprenticed RFO learning for different hidden sizes}
 \label{fig:exp1apprfo}
 \end{figure}
 
-
-\begin{figure}
-\centering
-\input{graphs/Exp1-sizes-app-newp}
-\caption{Comparison of Apprenticed RFO learning for different hidden sizes with new parameters}
-\label{fig:exp1apprfo}
-\end{figure}
+%
+%\begin{figure}
+%\centering
+%\input{graphs/Exp1-sizes-app-newp}
+%\caption{Comparison of Apprenticed RFO learning for different hidden sizes with new parameters}
+%\label{fig:exp1apprfo}
+%\end{figure}
 
 \subsubsection{Issues and Evaluation}
-The apprenticed agents produced consistently higher rewards across the board than the pure RL agents did. However, there are several unusual trends worth pointing out. For larger networks, it seems that the actual rewards received during apprenticeship actually decreased as it went along, though it's worth remembering that the reward is not the parameter it was learning to optimise during that stage. This is probably because with the larger networks the initial pass produces something that spreads out quite evenly across the space, then it learns to focus in, but tends to over fit, resulting in poor rewards.
+ However, there are several unusual trends worth pointing out. For larger networks, it seems that the actual rewards received during apprenticeship actually decreased as it went along, though it's worth remembering that the reward is not the parameter it was learning to optimise during that stage. This is probably because with the larger networks the initial pass produces something that spreads out quite evenly across the space, then it learns to focus in, but tends to over fit, resulting in poor rewards.
 
 The other interesting trend is the agent learned to produce something similar to the output after a reasonable number of iterations, at which point it was achieving only slightly worse scores than the pattern search. Then when it was switched to reinforcement learning it produced a temporary drop in performance, followed by a significant improvement, exceeding that of the pure RL agent. However this result seems to be unstable, as upon further iterations it produces decaying performance. The improvement in performance of the agent after the initial batch could be attributed to it learning to explore better, as in all the cases the function used was non-convex, so the pattern search will often end up in the worse of the two minima.
 
+\begin{table}[hbtp]
+\centering
+\begin{tabular}{r | cc}
+Hidden Size & RFO & Apprenticed \\
+\hline
+16 & 2.23 & 0.26 \\
+32 & 2.47 & 1.89 \\
+64 & 2.07 & 1.98\\
+128 & 2.66 & 2.40 \\
+256 & 2.76 & 2.10 \\
+512 & 2.71 & 2.37 \\
+1024 & 1.58 & \\
+
+\end{tabular}
+
+%need more tables here for the other experiments 
+
+\caption{Best normalised rewards for each of the networks}
+\label{tab:compare}
+
+\end{table}•
+
+As can be seen in table~\ref{tab:compare}
 
 \subsection{Deterministic RFO}
 \label{sec:detrfo}
 Given that the environment is both stochastic and non-adversarial, the optimal policy for the agent should be deterministic. So REINFORCE can only ever asymptotically converge to the optimal policy, and given the actual implementation, not even that. So the methods described in \cite{lillicrap2015continuous} ought to be able to produce better performance. A deterministic actor critic agent was created, within the same code structure as the REINFORCE agents, but this one is, in theory, off policy. The total structure of the agent is detailed in figure~\ref{fig:detrfo}. The key additions are the critic networks, which consist of both an RNN that produces an observation of the state, that is the series of value-coordinate pairs so far observed, and the Q-network, which estimates the value of that state.
-
-However, so far the agent has been very unstable, as is common for RL agents being trained using neural networks. The likely culprit is that the experience replay is insufficiently random, due to fixed batches still being used. However, it is hard to produce a computationally efficient implementation with the hardware available. It is also possible that different architectures for the critic may produce better results, but it's been a challenge to produce them and time ran out. Another possible solution could be to use the network's internal state to produce the input to the critic network, but in that case it is unclear how it would learn to produce a meaningful internal state.
-
 \begin{figure}
 \centering
 \input{diagrams/QLearnArch}
 \caption{Deterministic RFO structure}
 \label{fig:detrfo}
+\end{figure}
+
+So far the learning with this has been much slower, though more stable than that with REINFORCE, it seems to also get stuck in an unprofitable local minima really easily, as can be seen in figure~\ref{fig:detpolgrad}. Given more time, the next step would be to find the hyperparameter setup that gives it the fastest learning rate whilst continuing being stable and running it with the apprenticeship method to get it away from the worse of the local minima. With the apprenticeship method, the network would be trained by error compared to the tutor whilst the critic learns from the experiences as well so that both are well initialised when it switches to reinforcement learning. However time constraints prevent this from happening.
+
+\begin{figure}
+\centering
+\input{graphs/detpolgrad}
+\caption{Performance of RFO with deterministic policy gradient}
+\label{fig:detpolgrad}
 \end{figure}
 

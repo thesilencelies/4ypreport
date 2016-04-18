@@ -1,0 +1,17 @@
+\begin{tikzpicture}[scale = 0.8]
+\begin{axis}[
+    title={Average reward experienced by RFO agent},
+    name = rewplot,
+    xlabel={Epoch},
+    ylabel={Total Reward},
+    legend pos=north west,
+    ymajorgrids=true,
+    %grid style=dashed,
+]
+ 
+\addplot table [ color=blue,mark=none,x = epoch, y=optrew, col sep=comma] {graphs/detpoltestlong.csv};
+\addplot table [ color=red,mark=none,x = epoch, y=valrew, col sep=comma] {graphs/detpoltestlong.csv};
+    \legend{Training, Validation}
+    
+\end{axis}
+\end{tikzpicture}

@@ -8,22 +8,37 @@
     legend pos=south east,
     ymajorgrids=true,
     width = \textwidth,
-    height = 0.8\textwidth
+    height = 0.67\textwidth
     %grid style=dashed,
 ]
   \draw [color = black] (axis cs: -20,1) to node [very near start, above] {\footnotesize{pattern reward}} (axis cs:300,1);
 \addplot [mark=none, color = blue] table [ x = epoch, y= norm test rew, col sep=comma] {graphs/exp1long/opt1tsizeit1.csv};
 \addplot [mark=none, color = red] table [ x = epoch, y=norm test rew, col sep=comma] {graphs/exp1long/opt1tsizeit2.csv};
 \addplot [ mark=none,color = green] table [x = epoch, y=norm test rew, col sep=comma] {graphs/exp1long/opt1tsizeit3.csv};
-%\addplot [mark=none, color = black] table [ x = epoch, y=norm test rew, col sep=comma] {graphs/exp1long/opt1tsizeit4.csv};
-%\addplot [mark=none,color = blue, style = dashed]table [ x = epoch, y=norm test rew, col sep=comma] {graphs/exp1long/opt1tsizeit5.csv};
-%\addplot [ mark=none, color = red, style = dashed] table [x = epoch, y=norm test rew, col sep=comma] {graphs/exp1long/opt1tsizeit6.csv};
-%\addplot [mark=none, color = black, style = dashed] table [ x = epoch, y=norm test rew, col sep=comma] {graphs/exp1long/opt1tsizeit7.csv};
-    \legend{16,32, 64, 128, 256, 512, 1024,2048}
-
-
-
-    
+  \legend{16,32, 64, 128, 256, 512, 1024}
 \end{axis}
 \end{tikzpicture}
+
+
+\begin{tikzpicture}
+\begin{axis}[
+    title={Normalised reward experienced by RFO agent for different hidden sizes},
+    name = rewplot,
+    xlabel={Epoch},
+    ylabel={norm. Reward},
+    legend pos=south east,
+    ymajorgrids=true,
+    width = \textwidth,
+    height = 0.67\textwidth
+    %grid style=dashed,
+]
+  \draw [color = black] (axis cs: -20,1) to node [very near start, above] {\footnotesize{pattern reward}} (axis cs:300,1);
+\addplot [mark=none, color = green] table [ x = epoch, y=norm test rew, col sep=comma] {graphs/exp1long/opt1tsizeit4.csv};
+\addplot [mark=none,color = blue]table [ x = epoch, y=norm test rew, col sep=comma] {graphs/exp1long/opt1tsizeit5.csv};
+\addplot [ mark=none, color = red] table [x = epoch, y=norm test rew, col sep=comma] {graphs/exp1long/opt1tsizeit6.csv};
+\addplot [mark=none, color = black] table [ x = epoch, y=norm test rew, col sep=comma] {graphs/exp1long/opt1tsizeit7.csv};
+ \legend{128, 256, 512, 1024}
+\end{axis}
+\end{tikzpicture}
+
 
