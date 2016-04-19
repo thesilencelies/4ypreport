@@ -10,10 +10,14 @@ Another interesting result from this experiment would be to see what sort of beh
 %when do I deal with this?
 	%need to run an experiment for this one too - can create a placeholder though
 
-This could be defined as  a Markov decision process, where the action is either to trial some $\boldsymbol{x}_i in f(\boldsymbol{x}_i)$ or stop, the state is set of previous observations of $f(\boldsymbol{x}_i)$ and the reward is $\begin{cases}
+This could be defined as  a Markov decision process, where the action is either to trial some $\boldsymbol{x}_i in f(\boldsymbol{x}_i)$ or stop, the state is set of previous observations of $f(\boldsymbol{x}_i)$ and the reward is 
+\begin{equation*}
+r = \begin{cases}
  step penalty&  \text{non-terminal} \\
 -Loss(f(\boldsymbol{x}), f(\boldsymbol{x}_{min})) & \text{ terminal}
-\end{cases} $ where $Loss(a,b)$ is some function that is at a minimum when $a = b, \forall a \geq b$ and $step penalty$ is some non-positive constant that encourages the agent to reach a minimum in the smallest number of steps. 
+\end{cases}
+\end{equation*}
+ where $Loss(a,b)$ is some function that is at a minimum when $a = b, \forall a \geq b$ and $step penalty$ is some non-positive constant that encourages the agent to reach a minimum in the smallest number of steps. 
 In order to define the problem in such a way that it can learn reasonably and fair comparisons could be done it was further considered that it was known (or constrained to be) that the minima would lie within some known finite subspace of $\mathbb{R}^n$, which in practice meant that the search space and minima were constrained by $x_i \leq x_{max}$ where $x_{max}$ is some known constant.
 
 The reward scheme that simply rewards it for the difference between the final return value and the optimum was chosen not only because of it's simplicity, but also because of it's independence from the x coordinate checked. Under schemes where the x coordinate needs to be close to the minimum x coordinate, it gets penalised for following optimal behaviour into an unfortunate local minimum. Take the example of a function with two minima, the global one and one with a distant x value for which $f(x_{min_l}) = f(x_{min_g}) + \epsilon$. Suppose the agent explored nearby to both of these minima, and happened to observe a point enough closer to the local one that that value was lower than the one close to the global and so returns the one close to the local minima. Under a reward scheme based on x that would be heavily penalised, despite being entirely logical. So one based  purely n $f(x)$ is desirable.

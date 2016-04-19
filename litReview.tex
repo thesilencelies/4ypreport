@@ -45,7 +45,7 @@ which is easily done because $\frac{dL}{dO_b}$ is already known and $\frac{dO_b}
 \label{fig:backprop}
 \end{figure}
 
-There are some issues with this - the key one being  that typically the error function will be non-convex, and so it is likely to get stuck in unprofitable local minima. One standard trick that help reduce that is momentum, whereby each gradient update step for the parameters also includes a weighted multiple of the previous step, encouraging it to keep going in the same direction. So the update equation becomes:
+There are some issues with this - the key one being  that typically the error function will be non-convex, and so it is likely to get stuck in unprofitable local minima. One standard trick that helps to reduce that is momentum, whereby each gradient update step for the parameters also includes a weighted multiple of the previous step, encouraging it to keep going in the same direction. So the update equation becomes:
 \begin{equation*}
 \delta_{i,t} = \frac{dL}{d\theta_i} + m\delta_{i,t-1}
 \end{equation*}
@@ -78,13 +78,13 @@ More formally, the gradient with which the parameters are updated with can be co
 \end{equation}
  where $L_t$ is the loss at time step $t$, $x_t$ is the internal state at time $t$ and $\theta$ are the parameters of the RNN, and $\frac{\partial^+ x_k}{\partial\theta}$ is the immediate gradient of $x_k$ with respect to $\theta$. \cite{pascanu2012difficulty}
  
-RNNs are very powerful, having been shown to be technically Turing complete, and are capable of handling a much broader range of situations than pure feed-forwards networks. However they have their own additional issues - they are much more prone to exploding and vanishing gradients, where the gradients of elements many steps before the reward either produce exponentially large or exponentially small gradients, either dominating any impact of more recent steps or failing to produce any learning at all for such distances. Furthermore, in part due to their power, they tend to produce chaotic responses to variations in the error surface, meaning they are much more likely to end up in unhelpful local minima.
+RNNs are very powerful, having found success in a number of different areas, and are capable of handling a much broader range of situations than pure feed-forwards networks. However they have their own additional issues - they are much more prone to exploding and vanishing gradients, where the gradients of elements many steps before the reward either produce exponentially large or exponentially small gradients, dominating any impact of more recent steps or failing to produce any learning at all for such distances. Furthermore, in part due to their power, they tend to produce chaotic responses to variations in the error surface, meaning they are much more likely to end up in unhelpful local minima.
 
-One trick to help with the exploding gradient is to reduce the norm of the gradient of any layer before averaging to some limit by scaling down all the gradients of any layer who's gradient  norm is greater than the limit. This means that the closer points will never be dominated, which allows other hyper parameters to be set so as to reduce the vanishing gradient problem.
+One trick to help with the exploding gradient is to limit the norm of the gradients. Which is done by reduce the norm of the gradient of any layer before averaging to some limit by scaling down all the gradients of any layer who's gradient  norm is greater than the limit. This means that the closer points will never be dominated, which allows other hyper parameters to be set so as to reduce the vanishing gradient problem.
 
 \subsection{Reinforcement Learning}
 Reinforcement learning (RL) is ``a technique where an agent attempts to maximise it's reward by repeated interactions with a complex uncertain environment.'' \cite{Sutton:1998:IRL:551283}
-RL is defined in terms of an agent working within a Markov decision process (MDP), although many applications stretch or break the definition of an MDP. An MDP is a discrete time stochastic control process, where there are some set of states the agent can be in, and in each of those states the agent can take one of a number of actions. Depending what action is chosen, the agent will transition to some state (which may be the same one) with different probabilities depending on what action was chosen, and the agent will receive some reward depending on what transition happened. An important property of an MDP is that it is Markovian, that is that what actions can be taken and the transition probabilities are solely a function of the current state, no matter what route was taken to get there or anything else like that. One such process is displayed in figure~\ref{fig:mdpsimple}
+RL is defined in terms of an agent working within a Markov decision process (MDP), although many applications stretch or break the definition of an MDP. An MDP is a discrete time stochastic control process, where there are some set of states the agent can be in, and in each of those states the agent can take one of a number of actions. Depending what action is chosen, the agent will transition to some state (which may be the same one) with different probabilities depending on what action was chosen, and the agent will receive some reward, $r \in \mathbb{R}$, depending on what transition happened. An important property of an MDP is that it is Markovian, which means what actions can be taken and the transition probabilities are solely a function of the current state, no matter what route was taken to get there or anything else like that. One such process is displayed in figure~\ref{fig:mdpsimple}
 
 \begin{figure}
 \centering
@@ -111,7 +111,7 @@ Temporal difference methods are all based on using the bellman step to update th
 \begin{equation}
 V(s_n) \gets r + \gamma V(s_{n+1})
 \end{equation}
-$\gamma < 1$ is a constant that discounts future rewards, so that for environments with unbounded episode length the value function remains finite. There are several methods to estimate the Q function - the two key ones are SARSA and Q-Learning.
+$r$ is the reward, $\gamma < 1$ is a constant that discounts future rewards, so that for environments with unbounded episode length the value function remains finite. There are several methods to estimate the Q function - the two key ones are SARSA and Q-Learning.
 
 SARSA is an on-policy algorithm which assesses the policy it is following. It follows an update step of:
 \begin{equation}
@@ -185,10 +185,10 @@ L(s,a) = (Q(s,a;\theta) - (r + \gamma Q(s,a; \theta' )))^2
 \subsubsection{Policy Gradient Methods}
 In many applications of reinforcement learning, it is necessary to deal with continuous state and action spaces. This is a departure from the strict definition of a Markov decision process, but in many cases sufficient discretization leads to intractably large state and action spaces anyway. In such cases both Q learning and SARSA face issues due to the need to calculate the maximum of an arbitrary function at each action step. Instead what is used is some policy function $\pi(s;\theta)$ which outputs the continuous action $a$ for any particular step. Then this policy is updated after some number of steps based on the gradient of the expected total rewards with respect to the parameters. This expectation is notated as $J(\theta)$, and is defined as:
 \begin{equation}
-J(\theta) = \mathbb{E}\big[\sum_t=1^T r_t \big] = \mathbb{E}[R]
+J(\theta) = \mathbb{E}\big[\sum_{t=1}^T r_t \big] = \mathbb{E}[R]
 \end{equation}
 
-In REINFORCE the sample approximation to this gradient is formed as, after running through M episodes:
+One family of policy gradient methods are called REINFORCE. In REINFORCE the sample approximation to this gradient is formed as, after running through M episodes:
 \begin{equation}
 \nabla_\theta J = \frac{1}{M}\sum_{i=1}^M\sum_{t=1}^T\nabla_\theta  \text{log}\pi ( s_{1:t}^i ; \theta)(R^i_t - b_t)
 \label{eq:Reinforce}
