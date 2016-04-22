@@ -1,15 +1,26 @@
-\section{Literature Review}
+
+%define better what a neural network is, what hyperparameters are etc.
+%use shorter sentences and maths where maths is done
+%too many sentences with too much in them. keep it really clear. wordy is fine.
+%make sure every term is defined.
+
+%reinforcement learning - 
+
+%concrete examples are helpful
+
+\section{Background Material}
 %this will detail all the prior work we're building on here.
 %we can say more here - both more detail and more background if needed
 This section details the mathematical framework and previous research on which this project was based.
 
 \subsection{Artificial Neural Networks}
-This project uses artificial neural networks for the approximation of various functions within the agent. Artificial neural networks can be considered to be general function approximators - they learn a non-linear mapping between their inputs and outputs, the complexity of which is dependant on the hyper parameters and structure of the network.
+This project uses artificial neural networks for the approximation of various functions within the agent. Like with most learning systems, they have parameters and hyperparameters. Parameters are values used for the task that are updated by the learning process. Hyperparameters define aspects of how the learning process works.
+  Artificial neural networks can be considered to be general function approximators - they learn a non-linear mapping between their inputs and outputs, the complexity of which is dependant on the hyper parameters and structure of the network.
 
-At their most basic, a neural network consists of layers of ``neurons''. Each neuron takes a linear sum of their inputs (often the output of all the neurons in the previous layer, plus an optional bias term, but not always), then applies a non-linear ``activation function'' to that.  So the output of the jth neuron in the layer could be written as:
+At their most basic, a neural network consists of layers of ``neurons''. Each neuron takes a weighted linear sum of their inputs (often the output of all the neurons in the previous layer, plus an optional bias term, but not always), then applies a non-linear ``activation function'' to that.  So the output of the jth neuron in the layer could be written as:
 \begin{equation}
 O_j = f\big( \sum_i (w_{ji}I_i)\big)
-\end{equation} where $f(x)$ is the non-linear activation function - for example the sigmoid function, $\frac{1}{1+ \text{e}^{-x}}$.  $w_ij$ are model parameters that are learned. The non-linearity allows multiple consecutive layers to add further expressiveness to the function, and the choice of what non-linearity is used also significantly affects it's behaviour.
+\end{equation} where $I_i$ are the input terms, $f(x)$ is the non-linear activation function - for example the sigmoid function, $\frac{1}{1+ \text{e}^{-x}}$.  $w_ij$ are model parameters that are learned. The non-linearity allows multiple consecutive layers to add further expressiveness to the function, and the choice of what non-linearity is used also significantly affects its behaviour. Which non-linearity is chosen is normally decided based on experimental results.
 
 The two main non-linearities used within the experiments in this paper are ReLU and HardTanh. Both are non-differentiable, but do have sub-gradients. ReLU (Rectified Linear Units) are defined as:
 \begin{equation}
@@ -53,12 +64,13 @@ There are some issues with this - the key one being  that typically the error fu
 \theta_i = \theta_i  + \alpha * \delta_{i,t}
 \end{equation}
 
-The other significant problem is one of over fitting, where the neural network will start learning how to match the noise within the examples to produce an even better fit to the training data, which comes at a significant cost to it's ability to generalise. There are a number of ways to combat this, one can keep the number of parameters available to the network low, which means that it doesn't have the ability to fit the much higher order noise. However it's hard to know how large to make the network initially, and training the networks is often computationally expensive, so schemes that iteratively increase the network size take a lot of time. Two better techniques are early stopping and regularisation. In early stopping, a subset of the training data is separated, called the validation data, and after each training epoch the network is tested on the validation set. When the results on the validation set have stopped improving for some number of epochs, the training process is stopped, even if the network is still improving on the training set.
+The other significant problem is one of over fitting, where the neural network will start learning how to match the noise within the examples to produce an even better fit to the training data, which comes at a significant cost to its ability to generalise. There are a number of ways to combat this, one can keep the number of parameters available to the network low, which means that it doesn't have the ability to fit the much higher order noise. However it is hard to know how large to make the network initially, and training the networks is often computationally expensive, so schemes that iteratively increase the network size take a lot of time. Two better techniques are early stopping and regularisation. In early stopping, a subset of the training data is separated, called the validation data, and after each training epoch the network is tested on the validation set. When the results on the validation set have stopped improving for some number of epochs, the training process is stopped, even if the network is still improving on the training set.
 
-With regularisation, the norm of the parameters in each layer is limited in some way, for example by adding penalty term to the loss function for the total norm of the weights. In general with neural networks weight decay, whereby each weight is reduced by some amount after every step, or hard norm limits, whereby it scales all the parameters so that they don't exceed some limit on the norm, are used.
+With regularisation, the norm of the parameters in each layer is limited in some way, for example by adding penalty term to the loss function for the total norm of the weights. With neural networks, a similar result can be attained with weight decay or norm limitation. In weight decay after each step each weight is reduced by a small amount, which keeps the values lower. In norm limitation the norm (often the L2 norm) of all the parameters is compared to some limit, which is another hyperparameter. If the norm exceeds the limit, every parameter is scaled down by the same amount so that the norm equals the limit.
+
 \subsubsection{Recurrent Neural Networks}
 
-A recurrent neural network (RNN) is a particular architecture of an artificial neural network where a layer takes it's previous values as an input. This means that there is now a ``memory'' to the network. With a simple feed forwards network, the outputs are only a ever a function of the current input, whilst with a RNN the output is a function of all previous inputs. This means that RNNs can be used for variable length inputs or outputs. In order to train such a network, the back-propagation algorithm has to be modified to a form called ``back-propagation through time''. In this the internal states of the network are ``rolled out'', so that each previous internal state is treated as if it were a separate layer. Then the gradients for each of these rolled out layers are summed together, and this average gradient is used to update the parameters. This idea is shown in figure~\ref{fig:bptt}.
+A recurrent neural network (RNN) is a particular architecture of an artificial neural network where a layer takes its previous values as an input. This means that there is now a ``memory'' to the network. With a simple feed forwards network, the outputs are only a ever a function of the current input, whilst with a RNN the output is a function of all previous inputs. This means that RNNs can be used for variable length inputs or outputs. In order to train such a network, the back-propagation algorithm has to be modified to a form called ``back-propagation through time''. In this the internal states of the network are ``rolled out'', so that each previous internal state is treated as if it were a separate layer. Then the gradients for each of these rolled out layers are summed together, and this average gradient is used to update the parameters. This idea is shown in figure~\ref{fig:bptt}.
 
 \begin{figure}
 \centering
@@ -76,15 +88,18 @@ More formally, the gradient with which the parameters are updated with can be co
 \begin{equation}
 \frac{\partial x_t}{\partial x_k} =\sum_{t \geq i > k} \frac{\partial x_i}{\partial x_{i-1}} 
 \end{equation}
- where $L_t$ is the loss at time step $t$, $x_t$ is the internal state at time $t$ and $\theta$ are the parameters of the RNN, and $\frac{\partial^+ x_k}{\partial\theta}$ is the immediate gradient of $x_k$ with respect to $\theta$. \cite{pascanu2012difficulty}
+ where $L_t$ is the loss at time step $t$, $x_t$ is the internal state at time $t$ and $\theta$ are the parameters of the RNN, and $\frac{\partial^+ x_k}{\partial\theta}$ is the immediate gradient of $x_k$ with respect to $\theta$. 
  
-RNNs are very powerful, having found success in a number of different areas, and are capable of handling a much broader range of situations than pure feed-forwards networks. However they have their own additional issues - they are much more prone to exploding and vanishing gradients, where the gradients of elements many steps before the reward either produce exponentially large or exponentially small gradients, dominating any impact of more recent steps or failing to produce any learning at all for such distances. Furthermore, in part due to their power, they tend to produce chaotic responses to variations in the error surface, meaning they are much more likely to end up in unhelpful local minima.
+RNNs are very powerful, having found success in a number of different areas, and are capable of handling a much broader range of situations than pure feed-forwards networks. However they have their own additional issues - they are much more prone to exploding and vanishing gradients. These are where the gradients of elements many steps before the reward either produce exponentially large or exponentially small gradients, dominating any impact of more recent steps or failing to produce any learning at all for such distances. Furthermore, in part due to their power, they tend to produce chaotic responses to variations in the error surface \cite{pascanu2012difficulty}, meaning they are much more likely to end up in unhelpful local minima.
 
-One trick to help with the exploding gradient is to limit the norm of the gradients. Which is done by reduce the norm of the gradient of any layer before averaging to some limit by scaling down all the gradients of any layer who's gradient  norm is greater than the limit. This means that the closer points will never be dominated, which allows other hyper parameters to be set so as to reduce the vanishing gradient problem.
+One trick to help with the exploding gradient is to limit the norm of the gradients. This is done before averaging in a similar way to the hard norm limits. For each layer, the norm of the gradients (again often L2) is calculated, compared to the limit, and if it exceeds the limit then the gradients for that layer are scaled down by the same amount so that the norm of the gradients equals the limit. This means that the closer points will never be dominated, which allows other hyper parameters to be set so as to reduce the vanishing gradient problem.
 
 \subsection{Reinforcement Learning}
-Reinforcement learning (RL) is ``a technique where an agent attempts to maximise it's reward by repeated interactions with a complex uncertain environment.'' \cite{Sutton:1998:IRL:551283}
-RL is defined in terms of an agent working within a Markov decision process (MDP), although many applications stretch or break the definition of an MDP. An MDP is a discrete time stochastic control process, where there are some set of states the agent can be in, and in each of those states the agent can take one of a number of actions. Depending what action is chosen, the agent will transition to some state (which may be the same one) with different probabilities depending on what action was chosen, and the agent will receive some reward, $r \in \mathbb{R}$, depending on what transition happened. An important property of an MDP is that it is Markovian, which means what actions can be taken and the transition probabilities are solely a function of the current state, no matter what route was taken to get there or anything else like that. One such process is displayed in figure~\ref{fig:mdpsimple}
+%bring it right up from first principles - assume the reader knows nothing
+%define your notation
+
+Reinforcement learning (RL) is ``a technique where an agent attempts to maximise its reward by repeated interactions with a complex uncertain environment.'' \cite{Sutton:1998:IRL:551283}
+RL is defined in terms of an agent working within a Markov decision process (MDP), although many applications stretch or break the definition of an MDP. An MDP is a discrete time stochastic control process, where there are some set of states the agent can be in, and in each of those states the agent can take one of a number of actions. Depending what action is chosen, the agent will transition to some state (which may be the same one) with different probabilities depending on what action was chosen, and the agent will receive some reward, $r \in \mathbb{R}$, depending on what transition happened. An important property of an MDP is that it is Markovian, which means what actions can be taken and the transition probabilities are solely a function of the current state, no matter what route was taken to get there. One such process is displayed in figure~\ref{fig:mdpsimple}
 
 \begin{figure}
 \centering
@@ -93,9 +108,19 @@ RL is defined in terms of an agent working within a Markov decision process (MDP
 \label{fig:mdpsimple}
 \end{figure}
 
-A reinforcement learning agent is primarily concerned with estimating two functions: the Value function and the Q function, which are shown in figure~\ref{fig:rlsimple}, based on the policy, $\pi$ it is assessing. The policy determines what action is chosen in each state. The value function is a function of state, which estimates the expected reward that the agent would receive continuing to follow $\pi$ from that state. The Q function is a function of state and action, which estimates  the expected reward the agent would receive if it were to return to following $\pi$ after taking that action in that state.
+A reinforcement learning agent follows and assesses some policy, $\pi$.The policy determines what action is chosen in each state. For this policy the agent estimates two functions: the Value function and the Q function, which are shown in figure~\ref{fig:rlsimple}.  The value function is a function of state, which estimates the expected reward that the agent would receive continuing to follow $\pi$ from that state. The Q function is a function of state and action, which estimates  the expected reward the agent would receive if it were to return to following $\pi$ after taking that action in that state.
 
-\begin{figure}
+All reinforcement learning agents are based upon using the Bellman equations to calculate the values of Q and V. These are:
+\begin{equation}
+V(s_t) = \mathbb{E}_{s:\pi}(R|s_t) = 
+\end{equation}
+\begin{equation}
+Q(s_t,a) = r + \gamma \mathbb{E}_{s:\pi}(R|s_{t+1}) = 
+\end{equation}
+Where $R|s$ is the total discounted reward experienced by the agent after state $s$.
+
+
+\begin{figure}[htbp]
 \centering
 \input{diagrams/RLsimple}
 \caption{A simplified view of the Reinforcement learning problem}
@@ -104,7 +129,7 @@ A reinforcement learning agent is primarily concerned with estimating two functi
 
 Reinforcement learning can be used for policy evaluation, where V and Q are estimated for the given policy $\pi$, though that requires the policy to have been explicitly defined elsewhere. This is done by running the agent and updating the estimates until convergence. In order for it to produce an estimate for every V and Q it has to visit each state and action an unbounded number of times. However, often what is desired is the discovery of the optimal policy $\pi^*$. This can be found by a process called policy iteration. In policy iteration some initial policy is chosen, then evaluated, then improved using the information from the evaluation, then the improved policy is evaluated and the process repeated until convergence. Often it is expedient to not wait for the policy evaluation to converge, but rather perform partial steps of both the evaluation and the improvement. These smaller steps often lead to much faster convergence, provided it still is able to visit every state.
 
-A RL agent can either  be following the policy it is evaluating, in which is called an on-policy method, or it can be following a different policy to the one it is evaluating, called an off policy method. On policy methods are simpler, but require the policy to naturally explore the whole state space. Depending on the situation, it is often desirable to have a final policy that doesn't do the exploration on it's own, in which case an off policy method would be required.
+A RL agent can either  be following the policy it is evaluating, in which is called an on-policy method, or it can be following a different policy to the one it is evaluating, called an off policy method. On policy methods are simpler, but require the policy to naturally explore the whole state space. Depending on the situation, it is often desirable to have a final policy that doesn't do the exploration on its own, in which case an off policy method would be required.
 
 \subsubsection{Temporal Difference Methods}
 Temporal difference methods are all based on using the bellman step to update the estimates of V(s) and Q(s,a) after every transition.
@@ -117,7 +142,7 @@ SARSA is an on-policy algorithm which assesses the policy it is following. It fo
 \begin{equation}
 Q(s_n,a_n) \gets r + \gamma Q(s_{n+1}, a_{n+1}) 
 \end{equation}
-Where $a_n$ is the action chosen by $\pi$ at step $n$. As this is an on-policy algorithm, $\pi$ has to be sufficiently exploratory. When performing policy iteration, the normal procedure is to make $\pi$ greedy with respect to the calculated Q values. But this won't explore enough on it's own, so in addition, $\pi$ is modified so that it has a small chance $\epsilon$ to take a random action on any step. This ``epsilon greedy'' algorithm is detailed in figure~\ref{alg:epsgreedy}. After each Temporal difference update to the Q function, the policy is effectively updated in that region.
+Where $a_n$ is the action chosen by $\pi$ at step $n$. As this is an on-policy algorithm, $\pi$ has to be sufficiently exploratory. When performing policy iteration, the normal procedure is to make $\pi$ greedy with respect to the calculated Q values. But this won't explore enough on its own, so in addition, $\pi$ is modified so that it has a small chance $\epsilon$ to take a random action on any step. This ``epsilon greedy'' algorithm is detailed in figure~\ref{alg:epsgreedy}. After each Temporal difference update to the Q function, the policy is effectively updated in that region.
 
 \begin{figure}
 \centering
@@ -141,7 +166,7 @@ Where $a_n$ is the action chosen by $\pi$ at step $n$. As this is an on-policy a
 \label{alg:epsgreedy}
 \end{figure}
 
-Q learning also uses an epsilon greedy policy to choose it's actions, however Q learning is an off policy algorithm, which actually learns about the purely greedy policy. In Q learning the update for Q is:
+Q learning also uses an epsilon greedy policy to choose its actions, however Q learning is an off policy algorithm, which actually learns about the purely greedy policy. In Q learning the update for Q is:
 \begin{equation}
 Q(s_n,a_n) \gets r + \gamma \max_a \{Q(s_{n+1}, a) \}
 \end{equation}
@@ -168,9 +193,9 @@ So far all of the above maths has implicitly been assuming that V(s) and Q(s,a) 
 
 There are several key challenges this brings up however: ones of stability, generalisation and expressiveness. If the function isn't expressive enough to describe the optimal policy then the agent will converge to a suboptimal policy, if at all. In general there is no guarantee that the function will converge, and often it may well diverge - in particular there are issues where the initial errors in estimates for the Q values of local states can be amplified by the local updates due to the spreading from the function approximation. This can be reduced by sticking to linear function approximators, but then there are issues with the expressiveness. Lastly, the feature set chosen for the function approximators needs to be able to generalise sufficiently whilst also being able to tell the difference between good and bad states.
 
-One other interesting impact of using a function approximation is that, because by it's nature the function approximation can't produce the true Q value everywhere, it's most desirable for it to be correct in states where the agent is likely to travel, whilst wrong about states that the agent shouldn't end up in. So although it still needs to be able to explore every state to check to see what are better, more of the learning effort should be focussed on more profitable states.
+One other interesting impact of using a function approximation is that, because by its nature the function approximation can't produce the true Q value everywhere, it is most desirable for it to be correct in states where the agent is likely to travel, whilst wrong about states that the agent shouldn't end up in. So although it still needs to be able to explore every state to check to see what are better, more of the learning effort should be focussed on more profitable states.
 
-Because of those reasons, for many years it was considered impossible to use neural networks as the function approximators in reinforcement learning. However, in \cite{atariDQN} the team at Google Deepmind managed to train a deep network to play Atari games using reinforcement learning. The key changes are that they used experience replay and a target network. 
+Because of those reasons, for many years it was considered impossible to use neural networks as the function approximators in reinforcement learning. However, in ``Human-level control through deep reinforcement learning'' \cite{atariDQN} the team at Google Deepmind managed to train a deep network to play Atari games using reinforcement learning. The key changes are that they used experience replay and a target network. 
 
 With experience replay they store a set of the previous transitions, then at each learning step, rather than just update with the last transition, they produce a mini-batch of a random selection of previous transitions to learn from, and apply Q-learning for each of them to create the targets to update the network weights with. The randomness helps reduce the chance of the network ``forgetting'' something that it learned from a previous transition and helps improve learning stability. 
 
@@ -183,7 +208,7 @@ L(s,a) = (Q(s,a;\theta) - (r + \gamma Q(s,a; \theta' )))^2
 \end{equation}
 
 \subsubsection{Policy Gradient Methods}
-In many applications of reinforcement learning, it is necessary to deal with continuous state and action spaces. This is a departure from the strict definition of a Markov decision process, but in many cases sufficient discretization leads to intractably large state and action spaces anyway. In such cases both Q learning and SARSA face issues due to the need to calculate the maximum of an arbitrary function at each action step. Instead what is used is some policy function $\pi(s;\theta)$ which outputs the continuous action $a$ for any particular step. Then this policy is updated after some number of steps based on the gradient of the expected total rewards with respect to the parameters. This expectation is notated as $J(\theta)$, and is defined as:
+In many applications of reinforcement learning, it is necessary to deal with continuous state and action spaces. This is a departure from the strict definition of a Markov decision process, but in many cases sufficient discretisation leads to intractably large state and action spaces anyway. In such cases both Q learning and SARSA face issues due to the need to calculate the maximum of an arbitrary function at each action step. Instead what is used is some policy function $\pi(s;\theta)$ which outputs the continuous action $a$ for any particular step. Then this policy is updated after some number of steps based on the gradient of the expected total rewards with respect to the parameters. This expectation is notated as $J(\theta)$, and is defined as:
 \begin{equation}
 J(\theta) = \mathbb{E}\big[\sum_{t=1}^T r_t \big] = \mathbb{E}[R]
 \end{equation}
@@ -197,18 +222,28 @@ This is produced by approximating the action value function as if it were the sa
 
 This method is again on-policy, and indeed only works for stochastic policies, as the log trick used to remove the dependence on the gradient of state distribution from the performance gradient depends on the policy having a non-zero probability of taking any action. Indeed, for a long time it was thought that in order to calculate the policy gradient for a deterministic policy a model of the environment is needed to work out the state distribution.
 
-However, in \cite{silver2014deterministic}, it was shown that, providing some basic properties of the function are true, the gradient of a deterministic policy $\mu(s)$ is:
+However, in ``Deterministic policy gradient algorithms''\cite{silver2014deterministic}, it was shown that, providing some basic properties of the function are true, the gradient of a deterministic policy $\mu(s)$ is:
 \begin{equation}
 \nabla_\theta J =\mathbb{E}\big[ \nabla_\theta  \mu ( s ; \theta^\mu) \nabla Q^\mu (s,a)|_{a = \mu(s)}\big]
 \end{equation}
-This can be implemented using an Actor-Critic method, whereby there is a separate actor and critic networks, the actor implementing $\mu$ and the critic $Q^\mu$. The actors weights are updated according to the above gradient, whilst the critic can use SARSA or Q learning updates as in the discrete case, but taking action as an input.
+This can be implemented using an Actor-Critic method, shown in figure~\ref{fig:actcrit}, whereby there are separate actor and critic networks, the actor implementing $\mu$ and the critic $Q^\mu$. The actor's weights are updated according to the above gradient, whilst the critic can use SARSA or Q learning updates as in the discrete case, but taking action as an input.
 
-In \cite{lillicrap2015continuous} the above was combined with the insights from \cite{atariDQN} to produce an actor critic system that used the deterministic policy gradient to train deep neural networks to produce the control for various continuous tasks. The main additional innovation was that the target network parameters are slowly updated towards the current parameters at each step, rather than copying across after some number of steps, to better keep the systems disjoint.
+
+\begin{figure}
+\centering
+\input{diagrams/actor-critic}
+\caption{An Actor-Critic System}
+\label{fig:actcrit}
+\end{figure}
+
+
+
+In ``Continuous control with deep reinforcement learning'' \cite{lillicrap2015continuous} the above was combined with the insights from the Atari paper \cite{atariDQN} to produce an actor critic system that used the deterministic policy gradient to train deep neural networks to produce the control for various continuous tasks. The main additional innovation was that the target network parameters are slowly updated towards the current parameters at each step, rather than copying across after some number of steps, to better keep the systems disjoint.
 
 \subsection{Related Work}
-In \cite{ling2016latent} %read the actual paper and rewrite this bit please
-google deeepmind look at the parsing and analysis of Magic: the Gathering cards using deep networks, which is a crucial step in developing a competent AI to play the game as a whole.
+In ``Latent Predictor Networks for Code Generation''\cite{ling2016latent} %read the actual paper and rewrite this bit please
+Google Deepmind look at the parsing and analysis of Magic: the Gathering cards using deep networks, which is a crucial step in developing a competent AI to play the game as a whole.
 
-In \cite{alphaGo} the team at Google Deepmind produced an agent trained by reinforcement learning that beat the world champion at the board game Go. There are many interesting developments on the standard RL trained model, such as retaining a smaller network for their monte-carlo tree searches, but the most interesting technique for this paper was their method of initially training the agent. They first taught the agent to predict expert moves from a large series of board states in a supervised manner. Having trained this agent, the same networks were then used to initialise a reinforcement learning agent that they then played against itself for an extended period of time to produce the value network with which they made the initial decisions with the AlphaGo agent. 
+In ``Mastering the game of Go with deep neural networks and tree search''\cite{alphaGo} the team at Google Deepmind produced an agent trained by reinforcement learning that beat the world champion at the board game Go. There are many interesting developments on the standard RL trained model, such as retaining a smaller network for their monte-carlo tree searches, but the most interesting technique for this paper was their method of initially training the agent. They first taught the agent to predict expert moves from a large series of board states in a supervised manner. Having trained this agent, the same networks were then used to initialise a reinforcement learning agent that they then played against itself for an extended period of time to produce the value network with which they made the initial decisions with the AlphaGo agent. 
 %what is the related work to the results of this project?
 

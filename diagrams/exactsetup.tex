@@ -35,7 +35,7 @@ vh path/.style={to path={|- (\tikztotarget)}}
 	edge [<-] (o1);
 \node (o2) [layer, below = of nl3] {output size}
 	edge [<-] (nl3);
-\node (noise) [NL, fill = black!20, below = of o2, label = {[red] right: for exploration}] {gaussian noise}
+\node (noise) [NL, fill = black!20, below = of o2, label = {[red] 0: for exploration}] {gaussian noise}
 	edge [<-] (o2);
 \node (ht) [NL, below= of noise] {HardTanh}
 	edge [<-] (noise);
@@ -44,8 +44,8 @@ vh path/.style={to path={|- (\tikztotarget)}}
 \node (xo) [circ, below = of xmul] {$x_{out}$}
 	edge [<-] (xmul);
 %bounding box
-\node (map)[draw, dashed, red, fit = (xmul) (ht), label = {[red, text width = 4cm] right: mapping [-1 - 1] to the boundaries}] {};
-\node (func)[draw, dashed, red, fit = (inp)(nl1)(x)(fx)(fxmin), label = {[red, text width = 4cm] right: function input}] {};
-\node (locator)[draw, dashed, red, fit = (o1) (nl3)(o2), label = {[red, text width = 4cm] right: location from internal state}] {};
-\node (rnn)[draw, dashed, red, fit = (h) (nl2), label = {[red, text width = 4cm] right: RNN}] {};
+\node (map)[draw, dashed, red, fit = (xmul) (ht), label = {[red, text width = 4cm] 0: mapping [-1 - 1] to the boundaries}] {};
+\node (func)[draw, dashed, red, fit = (inp)(nl1)(x)(fx)(fxmin), label = {[red, text width = 4cm] 0: function input}] {};
+\node (locator)[draw, dashed, red, fit = (o1) (nl3)(o2), label = {[red, text width = 4cm] 0: location from internal state}] {};
+\node (rnn)[draw, dashed, red, fit = (h) (nl2), label = {[red, text width = 4cm] 0: RNN}] {};
 \end{tikzpicture}
