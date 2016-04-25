@@ -39,7 +39,7 @@ x & |x| < 1 \\
 \end{equation}
 Their respective advantages are that ReLU don't suffer from having a critical region where the gradients are non-zero, whilst HardTanh has the advantage that it can pass both negative and positive values.
 
-They are trained using gradient descent to minimise the loss function of interest,which varies between applications - where a specific output is desired mean squared error is often used. The gradient of the output with respect to the input is calculated, using the backpropagation algorithm, which is essentially the chain rule applied to the consecutive layers. So for a network with layers $a, b, c$, where $O_a$ is the output of layer $a$ and $I_a$ is the input to layer $a$ then 
+They are trained using gradient descent to minimise the loss function of interest,which varies between applications - where a specific output is desired mean squared error is often used. The gradient of the output with respect to the input is calculated, using the backpropagation algorithm, which is essentially the chain rule applied to the consecutive layers. So for a network with layers $a, b, c$, where $O_a$ is the output of layer $a$ and $I_a$ is the input to layer $a$:
 \begin{equation}
 \frac{dL}{dI}  = \frac{dL}{dO_b} \frac{dO_b}{dO_a} \frac{dO_a}{dI} 
 \end{equation} 
@@ -56,7 +56,7 @@ which is easily done because $\frac{dL}{dO_b}$ is already known and $\frac{dO_b}
 \label{fig:backprop}
 \end{figure}
 
-There are some issues with this - the key one being  that typically the error function will be non-convex, and so it is likely to get stuck in unprofitable local minima. One standard trick that helps to reduce that is momentum, whereby each gradient update step for the parameters also includes a weighted multiple of the previous step, encouraging it to keep going in the same direction. So the update equation becomes:
+There are some issues with this - the key one being  that typically the error function will be non-convex, and so it is possible to get stuck in unprofitable local minima. One standard trick that helps to reduce that is momentum, whereby each gradient update step for the parameters also includes a weighted multiple of the previous step, encouraging it to keep going in the same direction. So the update equation becomes:
 \begin{equation*}
 \delta_{i,t} = \frac{dL}{d\theta_i} + m\delta_{i,t-1}
 \end{equation*}
@@ -66,7 +66,7 @@ There are some issues with this - the key one being  that typically the error fu
 
 The other significant problem is one of over fitting, where the neural network will start learning how to match the noise within the examples to produce an even better fit to the training data, which comes at a significant cost to its ability to generalise. There are a number of ways to combat this, one can keep the number of parameters available to the network low, which means that it doesn't have the ability to fit the much higher order noise. However it is hard to know how large to make the network initially, and training the networks is often computationally expensive, so schemes that iteratively increase the network size take a lot of time. Two better techniques are early stopping and regularisation. In early stopping, a subset of the training data is separated, called the validation data, and after each training epoch the network is tested on the validation set. When the results on the validation set have stopped improving for some number of epochs, the training process is stopped, even if the network is still improving on the training set.
 
-With regularisation, the norm of the parameters in each layer is limited in some way, for example by adding penalty term to the loss function for the total norm of the weights. With neural networks, a similar result can be attained with weight decay or norm limitation. In weight decay after each step each weight is reduced by a small amount, which keeps the values lower. In norm limitation the norm (often the L2 norm) of all the parameters is compared to some limit, which is another hyperparameter. If the norm exceeds the limit, every parameter is scaled down by the same amount so that the norm equals the limit.
+With regularisation, the norm of the parameters in each layer is limited in some way, for example by adding penalty term to the loss function for the total norm of the weights. With neural networks, a similar result can be attained with weight decay or norm limitation. In weight decay after each step each weight is reduced by a small amount, which keeps the values lower. In norm limitation the norm (often the L2 norm) of all the parameters is compared to some limit, which is another hyperparameter. If the norm exceeds the limit, every parameter is scaled down by the same amount so that the norm equals the limit. One additional benefit of this weight decay is if the network initially learns some incorrect behaviour, then it slowly ``forgets'' what it used to do as those weights are decayed in favour of the ones more recently updated.
 
 \subsubsection{Recurrent Neural Networks}
 
@@ -86,11 +86,11 @@ More formally, the gradient with which the parameters are updated with can be co
 \frac{\partial L_t}{\partial\theta} = \sum_{1 < k< t} \big( \frac{\partial L_t}{\partial x_t}\frac{\partial x_t}{\partial x_k} \frac{\partial^+ x_k}{\partial\theta} \big)
 \end{equation}
 \begin{equation}
-\frac{\partial x_t}{\partial x_k} =\sum_{t \geq i > k} \frac{\partial x_i}{\partial x_{i-1}} 
+\frac{\partial x_t}{\partial x_k} =\prod_{t \geq i > k} \frac{\partial x_i}{\partial x_{i-1}} 
 \end{equation}
- where $L_t$ is the loss at time step $t$, $x_t$ is the internal state at time $t$ and $\theta$ are the parameters of the RNN, and $\frac{\partial^+ x_k}{\partial\theta}$ is the immediate gradient of $x_k$ with respect to $\theta$. 
+ (from \cite{pascanu2012difficulty}) where $L_t$ is the loss from the output of the network at time $t$, $x_t$ is the internal state at time $t$ and $\theta$ are the parameters of the RNN, and $\frac{\partial^+ x_k}{\partial\theta}$ is the immediate gradient of $x_k$ with respect to $\theta$. 
  
-RNNs are very powerful, having found success in a number of different areas, and are capable of handling a much broader range of situations than pure feed-forwards networks. However they have their own additional issues - they are much more prone to exploding and vanishing gradients. These are where the gradients of elements many steps before the reward either produce exponentially large or exponentially small gradients, dominating any impact of more recent steps or failing to produce any learning at all for such distances. Furthermore, in part due to their power, they tend to produce chaotic responses to variations in the error surface \cite{pascanu2012difficulty}, meaning they are much more likely to end up in unhelpful local minima.
+RNNs are very powerful, having found success in a number of different areas, and are capable of handling a much broader range of situations than pure feed-forwards networks, for example multiple inputs to multiple outputs. However they have their own additional issues - they are much more prone to exploding and vanishing gradients. These are where the gradients of elements many steps before the reward either produce exponentially large or exponentially small gradients, dominating any impact of more recent steps or failing to produce any learning at all for such distances. Furthermore, in part due to their power, they tend to produce chaotic responses to variations in the error surface \cite{pascanu2012difficulty}, meaning they are much more likely to end up in unhelpful local minima or even just fail to converge.
 
 One trick to help with the exploding gradient is to limit the norm of the gradients. This is done before averaging in a similar way to the hard norm limits. For each layer, the norm of the gradients (again often L2) is calculated, compared to the limit, and if it exceeds the limit then the gradients for that layer are scaled down by the same amount so that the norm of the gradients equals the limit. This means that the closer points will never be dominated, which allows other hyper parameters to be set so as to reduce the vanishing gradient problem.
 
@@ -108,16 +108,16 @@ RL is defined in terms of an agent working within a Markov decision process (MDP
 \label{fig:mdpsimple}
 \end{figure}
 
-A reinforcement learning agent follows and assesses some policy, $\pi$.The policy determines what action is chosen in each state. For this policy the agent estimates two functions: the Value function and the Q function, which are shown in figure~\ref{fig:rlsimple}.  The value function is a function of state, which estimates the expected reward that the agent would receive continuing to follow $\pi$ from that state. The Q function is a function of state and action, which estimates  the expected reward the agent would receive if it were to return to following $\pi$ after taking that action in that state.
+A reinforcement learning agent follows and assesses some policy, $\pi$.The policy determines what action is chosen in each state, so $a_t = \pi(s_t)$. For this policy the agent estimates two functions: the Value function and the Q function, which are shown in figure~\ref{fig:rlsimple}.  The value function is a function of state, which estimates the expected reward that the agent would receive continuing to follow $\pi$ from that state. The Q function is a function of state and action, which estimates  the expected reward the agent would receive if it were to return to following $\pi$ after taking that action in that state.
 
-All reinforcement learning agents are based upon using the Bellman equations to calculate the values of Q and V. These are:
+All reinforcement learning agents are based upon using the Bellman equations to calculate the values of Q and V. These are defined recursively as:
 \begin{equation}
-V(s_t) = \mathbb{E}_{s:\pi}(R|s_t) = 
+V^\pi(s_t) = \mathbb{E}_{s:\pi}(R|s_t) = R(s_t,\pi(s_t)) + \gamma\sum_i P(s_i | s_t,\pi)V^\pi(s_i)
 \end{equation}
 \begin{equation}
-Q(s_t,a) = r + \gamma \mathbb{E}_{s:\pi}(R|s_{t+1}) = 
+Q^\pi(s_t,a) = R(s_t,a) + \gamma \mathbb{E}_{s:\pi}(R|s_{t+1}) = R(s_t,a) + \gamma \sum_i P(s_i | s_t,\pi) \sum_j P(a_j | s_i,\pi)Q^\pi(s_i,a_j)
 \end{equation}
-Where $R|s$ is the total discounted reward experienced by the agent after state $s$.
+Where $R|s$ is the total discounted reward experienced by the agent after state $s$, $R(s,a)$ is the reward given for taking action $a$ in state $s$, and $P(s_i | s_t, \pi)$ is the probability of the next state being $s_i$ given the current state is $s_t$ and the policy is $\pi$.
 
 
 \begin{figure}[htbp]
@@ -146,6 +146,7 @@ Where $a_n$ is the action chosen by $\pi$ at step $n$. As this is an on-policy a
 
 \begin{figure}
 \centering
+\begin{minipage}{.7\textwidth}
 \begin{algorithmic}
 \State In state $s$, with available actions $\boldsymbol{a}$
 \WithP[$\epsilon$]
@@ -162,6 +163,7 @@ Where $a_n$ is the action chosen by $\pi$ at step $n$. As this is an on-policy a
 	\State Perform action $a_{max}$
 \EndP
 \end{algorithmic}
+\end{minipage}
 \caption{Epsilon greedy policies}
 \label{alg:epsgreedy}
 \end{figure}
@@ -191,13 +193,13 @@ These two algorithms converge to fundamentally different policies, even if we ba
 \subsection{Function Approximators}
 So far all of the above maths has implicitly been assuming that V(s) and Q(s,a) are actually looking up values from a table, such that the function can take any arbitrary value for any of the states and actions. For many applications this is unrealistic - it requires the agent to be able to experience every possible state during training to learn the values for them, which may not be possible for practical reasons and in any case is computationally prohibitive. Far preferable would be to use some function approximation to V(s) and Q(s,a) that could generalise from the experiences it has had to those it hasn't.
 
-There are several key challenges this brings up however: ones of stability, generalisation and expressiveness. If the function isn't expressive enough to describe the optimal policy then the agent will converge to a suboptimal policy, if at all. In general there is no guarantee that the function will converge, and often it may well diverge - in particular there are issues where the initial errors in estimates for the Q values of local states can be amplified by the local updates due to the spreading from the function approximation. This can be reduced by sticking to linear function approximators, but then there are issues with the expressiveness. Lastly, the feature set chosen for the function approximators needs to be able to generalise sufficiently whilst also being able to tell the difference between good and bad states.
+There are several key challenges this brings up however: ones of stability, generalisation and expressiveness. If the function is not expressive enough to describe the optimal policy then the agent will converge to a suboptimal policy, if at all. In general there is no guarantee that the function will converge, and often it may well diverge - in particular there are issues where the initial errors in estimates for the Q values of local states can be amplified by the bootstrapping, which is where the current estimates are used in place of the true values. This can be reduced by sticking to linear function approximators, but then there are issues with the expressiveness. Lastly, the feature set chosen for the function approximators needs to be able to generalise sufficiently whilst also being able to tell the difference between good and bad states. Incorrect or and insufficient number of features won't be able to distinguish the relevant differences between states, whilst an excessive quantity of features is likely to lead to over-fitting and so fail to generalise.
 
-One other interesting impact of using a function approximation is that, because by its nature the function approximation can't produce the true Q value everywhere, it is most desirable for it to be correct in states where the agent is likely to travel, whilst wrong about states that the agent shouldn't end up in. So although it still needs to be able to explore every state to check to see what are better, more of the learning effort should be focussed on more profitable states.
+One other interesting impact of using a function approximation is that, because by its nature the function approximation is unlikely to yield the true Q value everywhere, it is most desirable for it to be correct in states where the agent is likely to travel, whilst wrong about states that the agent shouldn't end up in. So although it still needs to be able to explore every state to check to see what are better, more of the learning effort should be focussed on more profitable states.
 
-Because of those reasons, for many years it was considered impossible to use neural networks as the function approximators in reinforcement learning. However, in ``Human-level control through deep reinforcement learning'' \cite{atariDQN} the team at Google Deepmind managed to train a deep network to play Atari games using reinforcement learning. The key changes are that they used experience replay and a target network. 
+Because of those reasons, for many years neural networks were largely neglected as the function approximators in reinforcement learning in favour of linear approximators. However, in ``Human-level control through deep reinforcement learning'' \cite{atariDQN} the team at Google Deepmind managed to train a deep network to play Atari games using reinforcement learning. The key changes are that they used experience replay and a target network. 
 
-With experience replay they store a set of the previous transitions, then at each learning step, rather than just update with the last transition, they produce a mini-batch of a random selection of previous transitions to learn from, and apply Q-learning for each of them to create the targets to update the network weights with. The randomness helps reduce the chance of the network ``forgetting'' something that it learned from a previous transition and helps improve learning stability. 
+With experience replay they store a set of the previous transitions, then at each learning step, rather than just update with the last transition, they produce a mini-batch of a random selection of previous transitions to learn from, and apply Q-learning for each of them to create the targets to update the network weights with. This helps reduce the chance of the network ``forgetting'' something that it learned from a previous transition as it learns new things in later states. The random selection helps improve learning stability because it decouples the experiences from each other allowing it to learn from each transition individually. 
 
 The target network is a copy of the network that evaluated the Q values  but with different weights. In their implementation they copied across their weights to the target network after a large fixed number of steps. The target network was used in the update steps in place of the Q network values for producing the value of the next state, as follows, where $\theta$ is the network weights and $\theta'$ are the target network weights :
 \begin{equation*}
@@ -206,6 +208,7 @@ L(s,a) = (Q(s,a;\theta) - (r + \gamma Q(s,a; \theta' )))^2
 \begin{equation}
 \theta = \theta + \alpha \frac{\partial L}{\partial \theta}
 \end{equation}
+This produces a significant gain in stability due to it removing a lot of the instability caused by the bootstrapping, as now a local overestimate of value cannot generate a positive feedback loop in the same manner.
 
 \subsubsection{Policy Gradient Methods}
 In many applications of reinforcement learning, it is necessary to deal with continuous state and action spaces. This is a departure from the strict definition of a Markov decision process, but in many cases sufficient discretisation leads to intractably large state and action spaces anyway. In such cases both Q learning and SARSA face issues due to the need to calculate the maximum of an arbitrary function at each action step. Instead what is used is some policy function $\pi(s;\theta)$ which outputs the continuous action $a$ for any particular step. Then this policy is updated after some number of steps based on the gradient of the expected total rewards with respect to the parameters. This expectation is notated as $J(\theta)$, and is defined as:

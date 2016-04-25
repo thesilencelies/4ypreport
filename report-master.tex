@@ -368,7 +368,7 @@
 
 \usepackage{wrapfig} %allows wrapping text around figure
 \usepackage{amsmath} %advanced mathematical environment
-
+\usepackage{pdfpages}
 
 \title{Report for 4YP Project: \\ Gaming AI}
 \author{Stephen Lilico}
@@ -377,11 +377,11 @@
   \maketitle
   
   \newpage
-  Declaration of authorship
+  \includepdf[pages=-]{Declaration_of_Authorship.pdf}
   \newpage
   %abstract
   \begin{abstract}
-	Recent advances in reinforcement learning have shown it to be possible to use it to train neural networks for complex tasks. This paper sets out to see if these techniques can be used to leverage the significant power of neural networks to implicitly discover powerful policies, in particular to the cases of playing a trading card game and finding the optimum value of an unknown function that is expensive to compute.
+	Recent advances in reinforcement learning have shown it to be possible to use it to train neural networks for complex tasks. This report sets out to see if these techniques can be used to leverage the significant power of neural networks to implicitly discover powerful policies, in particular to the cases of playing a trading card game and finding the optimum value of an unknown function that is expensive to compute.
 	
 	%this will need rewriting
   \end{abstract}

@@ -22,6 +22,7 @@ In order to simplify this, as well as helping the learning to generalize well, i
 
  \begin{figure}[htbf]
  \centering
+ \begin{minipage}{.7\textwidth}
  \begin{algorithmic}
  \State $V(s; \theta) \mapsto \mathbb{R} $
  \Repeat
@@ -57,7 +58,7 @@ In order to simplify this, as well as helping the learning to generalize well, i
     \State every $c$ steps $\theta ' \gets \theta$
  \Until{Max epochs}
  \end{algorithmic}
- 
+ \end{minipage}
 \caption{Value iteration algorithm for MtG agent}
  \label{alg:mtgval}
 \end{figure}
