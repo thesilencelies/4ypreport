@@ -101,13 +101,24 @@ The exact setup chosen for the experimentation, in terms of number of layers and
 \label{fig:exactsetup}
 \end{figure}
 
+
+%this whole section needs rewriting STAT
+
 \subsubsection{Experimental Method}
 %need to do this
+
+%how am I using the error rate data?
+
 For the experimentation, the implementation of the agent was ran on a single GPU for 250 epochs, and tested on the test data after each epoch. There were  163840 training examples generated and 20480 test examples. 
 
 There were four main experiments performed: a comparison of the impact of number of hidden units in the network to performance, a comparison between using ReLU and HardTanh for the transfer functions, a comparison of giving the reward at every step or only the first, and comparison of the agent's performance with functions of different dimensions.
 
 Unless otherwise specified, the functions the agent was learning on were a series of 1 dimensional quartics, defined as 1D3P (because it has 3 stationary points). They were all ran with a fixed number of steps, 20, except for with the dimensionality increases, where the number of steps increases by 10 for each additional dimension.
+
+%rephrase this
+Because the initial exploratory experiments seemed to show better performance with a linear reward for all the experiments unless it's said otherwise.
+
+Unless otherwise stated, there was 128 neurons in the RNN, and 64 per layer in the input and location networks. The major exception to this is in the dimension experiments, which were given a larger network of 256 and 128 respectively to allow it more space to be able to learn the complexities of the higher dimensions without significantly harming performance.
 
 \subsubsection{RFO Results}
 In each of the charts, the normalised performance on the set of 20480 test functions is used. So a value of 0 indicates that the agent received the same average reward across the tests set as an agent that simply divides the search space evenly, while a score of 1, marked by the line labelled pattern search, indicates that the agent achieved the same average reward as a pattern search agent on the training data. The aim for this project would be to produce an agent who can produce a normalised score significantly higher than 1. Each chart lists the agents  normalised reward on the test data as a function of training epoch, so that both final result and learning rate can be examined.
@@ -115,16 +126,13 @@ In each of the charts, the normalised performance on the set of 20480 test funct
 
 In figure~\ref{fig:opt1full} the comparison between the agent's performance on the training and the validation data can be seen. Unlike with many supervised learning problems, the two seem well coupled, if both subject to some degree of stochasticity. The final accuracies obtained are somewhat disappointing, though as can be seen in figure~\ref{fig:opt1norm} the error rate at best does reach that of the pattern search agent. Also visible in figure~\ref{fig:opt1norm} is that the performance on the testing and validation data sets are near identical. Due to this, in all further graphs, only the test reward is considered.
 
+For the experiment that changed the number of roots of the testing functions, the relative performance of evenly searching the whole space compared to a pattern search changed dramatically. Because of that, for those experiments a different normalisation was used, which defines the reward on a scale where 0 is the performance of the pattern search agent, and 1 is the perfect result (0 total reward).
+
 \begin{figure}
 \centering
 \input{graphs/opt1-full}
-\caption{RFO learning behaviour \\ \emph{These values are not normalised as they include training values}}
-\label{fig:opt1full}
-\end{figure}
-\begin{figure}
-\centering
 \input{graphs/opt1-full-norm}
-\caption{RFO normalised performance across learning}
+\caption{RFO learning behaviour and normalised performance across learning}
 \label{fig:opt1norm}
 \end{figure}
 
@@ -132,10 +140,12 @@ In figure~\ref{fig:opt1full} the comparison between the agent's performance on t
 
 %detail the numbers used in the experiments and explain what the graphs mean - you can do this now
 
-From figure~\ref{fig:locexp} the chronological behaviour of the agent becomes apparent. It checks a spread of locations around the best point observed so far, both those close so that it can get a better value, but also those progressively further away in case there is a better minimum there. Although the behaviour seems slightly random, in the second path it returns to an area that clearly contains points that are worse those it had found, the policy performs very well, consistently getting a normalised score of 1.8, with an test error rate of less than 1\%. Interestingly the agent doesn't seem to be performing any form of gradient based search, but seems to be taking steps in 
+From figure~\ref{fig:locexp} the chronological behaviour of the agent becomes apparent. It checks a spread of locations around the best point observed so far, both those close so that it can get a better value, but also those progressively further away in case there is a better minimum there. Although the behaviour seems slightly random, in the second path it returns to an area that clearly contains points that are worse those it had found, the policy performs very well, consistently getting a normalised score of 1.8, with an test error rate of less than 1\%. Interestingly the agent doesn't seem to be performing any form of gradient based search, but seems to be taking steps in a direction until it decides that that direction is unprofitable.
 
 \emph{there will be data analysis here once I have the data - I'm retaking because I get much better results when I change one of the parameters}
 
+
+%I should present a graph showing how the error rates compare for an agent doing particularly well perhaps
 
 %detail exactly how these experiments were ran. - what was changed, by how much etc.
 \begin{figure}
@@ -145,25 +155,25 @@ From figure~\ref{fig:locexp} the chronological behaviour of the agent becomes ap
 \label{fig:locexp}
 \end{figure}
 
-%\begin{figure}
-%\centering
-%\input{graphs/Exp1-sizes}
-%\caption{Comparison of Agent learning for different hidden sizes}
-%\label{fig:exp1rfo}
-%\end{figure}
-%
-%\begin{figure}
-%\centering
-%\input{graphs/Exp1-sizes-newp}
-%\caption{Comparison of Agent learning for different hidden sizes with alternative hyper parameters}
-%\label{fig:exp1rfo2}
-%\end{figure}
-
 \begin{figure}
 \centering
 \input{graphs/Exp1-sizes-long}
 \caption{Comparison of Agent learning for different hidden sizes}
 \label{fig:exp1rfo}
+\end{figure}
+
+\begin{figure}
+\centering
+\input{graphs/Exp3-transfers}
+\caption{Comparison of Agent learning for different reward schemes and transfer functions}
+\label{fig:exp3rfo}
+\end{figure}
+
+\begin{figure}
+\centering
+\input{graphs/Exp2-param}
+\caption{Comparison of Agent learning for different order polynomials}
+\label{fig:exp2parrfo}
 \end{figure}
 
 \subsubsection{Issues and Evaluation} %needs more here
@@ -234,6 +244,20 @@ The graphs are normalised in the same way, and the pattern search level is again
 \label{fig:exp1apprfo}
 \end{figure}
 
+\begin{figure}
+\centering
+\input{graphs/Exp3-transfers-app}
+\caption{Comparison of Apprenticed Agent learning for different reward schemes and transfer functions}
+\label{fig:exp3app}
+\end{figure}
+
+\begin{figure}
+\centering
+\input{graphs/Exp2-param-app}
+\caption{Comparison of Apprenticed Agent learning for different order polynomials}
+\label{fig:exp2parapp}
+\end{figure}
+
 %
 %\begin{figure}
 %\centering
@@ -258,16 +282,38 @@ Hidden Size & RFO & Apprenticed \\
 128 & 2.66 & 2.40 \\
 256 & 2.76 & 2.10 \\
 512 & 2.71 & 2.37 \\
-1024 & 1.58 & \\
+1024 & 1.58 & 1.88 \\
 
 \end{tabular}
+\begin{tabular}{c c | cc}
+\multicolumn{2}{c}{Reward scheme}  & & \\
+Function & When  & RFO & Apprenticed \\
+\hline
+Linear & End & 2.66 & 2.40 \\
+Linear & Every step & 0.001 & 2.04 \\
+Log & End & 1.91 & 1.16\\
+Log & Every step & -9.51 & 1.08 \\
+
+\end{tabular}
+
+
+%These values are scaled so that 0 is the pattern reward and 1 is the best reward possible.
+%\begin{tabular}{r | cc}
+%Number of minima & RFO & Apprenticed \\
+%\hline
+%2 & 0.70 & 0.66 \\
+%3 & 0.85 &  0.64 \\
+%4 &0.83  & 0.80 \\
+%5 & 0.84 & 0.72 \\
+%
+%\end{tabular}
 
 %need more tables here for the other experiments 
 
 \caption{Best normalised rewards for each of the networks}
 \label{tab:compare}
 
-\end{table}•
+\end{table}
 
 As can be seen in table~\ref{tab:compare}
 

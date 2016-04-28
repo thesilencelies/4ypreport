@@ -5,13 +5,13 @@
     name = rewplot,
     xlabel={Epoch},
     ylabel={Total Reward},
-    legend pos=north west,
+    legend pos=south east,
     ymajorgrids=true,
     %grid style=dashed,
 ]
  
-\addplot table [ color=blue,mark=none,x = epoch, y=optrew, col sep=comma] {graphs/opt1-full-data.csv};
-\addplot table [ color=red,mark=none,x = epoch, y=valrew, col sep=comma] {graphs/opt1-full-data.csv};
+\addplot [ color=blue] table [mark=none,x = epoch, y=optrew, col sep=comma] {graphs/opt1savingrun.csv};
+\addplot[ color=red]  table  [mark=none,x = epoch, y=valrew, col sep=comma] {graphs/opt1savingrun.csv};
     \legend{Training, Validation}
     
 \end{axis}
@@ -21,13 +21,13 @@
     at = (rewplot.right of south east), anchor = left of south west, 
     xlabel={Epoch},
     ylabel={Error Rate (\%)},
-    legend pos=south west,
+    legend pos=north east,
     ymajorgrids=true,
     %grid style=dashed,
 ]
  
-\addplot table [ color=blue,mark=none,x = epoch, y=optER, col sep=comma] {graphs/opt1-full-data.csv};
-\addplot table [ color=red,mark=none,x = epoch, y=valER, col sep=comma] {graphs/opt1-full-data.csv};
+\addplot  [ color=blue] table [mark=none,x = epoch, y=optER, col sep=comma] {graphs/opt1savingrun.csv};
+\addplot  [ color=red] table [mark=none,x = epoch, y=valER, col sep=comma] {graphs/opt1savingrun.csv};
     \legend{Training, Validation}
     
 \end{axis}

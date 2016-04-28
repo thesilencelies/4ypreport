@@ -1,0 +1,23 @@
+
+\begin{tikzpicture}
+\begin{axis}[
+    title={Comparative reward experienced by RFO agent for functions with different numbers of minima},
+    name = rewplot,
+    xlabel={Epoch},
+    xmin = -10,
+    ylabel={norm. Reward},
+    legend pos=south east,
+    ymajorgrids=true,
+    width = \textwidth,
+    height = 0.67\textwidth
+    %grid style=dashed,
+]
+  \draw [color = black] (axis cs: -20,0) to node [very near start, above] {\footnotesize{pattern reward}} (axis cs:300,0);
+\addplot [mark=none, color = blue] table [ x = epoch, y= norm test rew, col sep=comma] {graphs/exp2/opt1paramit1.csv};
+\addplot [mark=none, color = red] table [ x = epoch, y=norm test rew, col sep=comma] {graphs/exp2/opt1paramit2.csv};
+\addplot [ mark=none,color = green] table [x = epoch, y=norm test rew, col sep=comma] {graphs/exp2/opt1paramit3.csv};
+\addplot [ mark=none,color = black] table [x = epoch, y=norm test rew, col sep=comma] {graphs/exp2/opt1paramit4.csv};
+  \legend{2 minima, 3 minima, 4 minima, 5 minima}
+\end{axis}
+\end{tikzpicture}
+
