@@ -1,7 +1,7 @@
 
 \begin{tikzpicture}
 \begin{axis}[
-    title={Comparative reward experienced by RFO agent for functions with different numbers of minima},
+    title={Comparative reward experienced by RFO agent for different order functions},
     name = rewplot,
     xlabel={Epoch},
     xmin = -10,
@@ -12,6 +12,7 @@
     height = 0.67\textwidth
     %grid style=dashed,
 ]
+  \draw [color = blue] (axis cs: -20,1) to node [very near start, above, blue] {\footnotesize{perfect reward}} (axis cs:300,1);
   \draw [color = black] (axis cs: -20,0) to node [very near start, above] {\footnotesize{pattern reward}} (axis cs:300,0);
 \addplot [mark=none, color = blue] table [ x = epoch, y= norm test rew, col sep=comma] {graphs/exp2/opt1paramit1.csv};
 \addplot [mark=none, color = red] table [ x = epoch, y=norm test rew, col sep=comma] {graphs/exp2/opt1paramit2.csv};

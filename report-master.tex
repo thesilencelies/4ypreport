@@ -369,6 +369,12 @@
 \usepackage{wrapfig} %allows wrapping text around figure
 \usepackage{amsmath} %advanced mathematical environment
 \usepackage{pdfpages}
+%to allow me to have something in the ToC but not have a title
+\newcommand\invisiblesection[1]{%
+  \refstepcounter{section}%
+  \addcontentsline{toc}{section}{\protect\numberline{\thesection}#1}%
+  \sectionmark{#1}}
+
 
 \title{Report for 4YP Project: \\ Gaming AI}
 \author{Stephen Lilico}

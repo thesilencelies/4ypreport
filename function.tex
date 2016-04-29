@@ -76,7 +76,7 @@ Given the variance of these polynomials, and in particular how much the reward c
 It was decided that, rather than get the agent to learn how to make the comparisons internally (or potentially learn to interpolate between observed values) that the minimum value observed overall would be worked out externally and fed to the neural network as an additional variable. The idea behind this decision is that this frees up the learning in the network to be devoted to finding the best behaviour for the system, rather than having to additionally use up neurons storing this value and performing the comparison in a potentially harmful manner. This does remove the opportunity for the agent to learn how to guess what the true minimum would be based on its observations, but it was decided that such a behaviour would be extremely prone to over fitting and the gains from it would not be worth the cost in terms of the additional learning overheads. Furthermore such an output would simply learn to return lower numbers under the current reward scheme, which means that the reward would also need to consider the x value of the optimum, which had already been discarded.
 
 \subsection{Recurrent Function Optimisation}
-The first design that was attempted was based on the work in Recurrent Models of Visual Attention\cite{RVA}. It used the overall structure shown in figure~\ref{fig:RFOarch} The idea is that the internal state of the recurrent neural network would be able to describe the state so that the feed-forwards network can decide what location to look at next. The network would be trained directly with REINFORCE, so only the rewards are needed, not any critic or similar structure. The final output is the minimum value observed, which is tracked at each function evaluation step, and also passed to the RNN to help describe the state space better, as then it doesn't have to learn to do that as well. The recurrence for the architecture that was designed can be seen in fig~\ref{fig:RFOarch}. On top of that structure, the average reward $b$ was also learned as a parameter of the network so that the variance reduction in REINFORCE could be used. One crucial difference is that, unlike with the visual attention paper \cite{RVA}, there is no classification, so no classification loss to train the RNN with, so it is only being trained by the REINFORCE module.
+The first design that was attempted was based on the work in Recurrent Models of Visual Attention\cite{RVA}. It used the overall structure shown in figure~\ref{fig:RFOarch} The idea is that the internal state of the recurrent neural network would be able to describe the state so that the feed-forwards network can decide what location to look at next. The network would be trained directly with REINFORCE, so only the rewards are needed, not any critic or similar structure. The final output is the minimum value observed, which is tracked at each function evaluation step, and also passed to the RNN to help describe the state space better, as then it doesn't have to learn to do that as well. The recurrence for the architecture that was designed can be seen in fig~\ref{fig:RFOarch}. On top of that structure, the average reward $b$ was also learned as a parameter of the network so that the variance reduction in REINFORCE could be used. One crucial difference is that, unlike with the visual attention paper \cite{RVA}, there is no classification, so no classification loss to train the RNN with, so it is only being trained by the REINFORCE module. The algorithm used to train it is detailed in figure~\ref{alg:rfo}s
 
 \begin{figure}
 \centering
@@ -84,109 +84,6 @@ The first design that was attempted was based on the work in Recurrent Models of
 \caption{Architecture for recurrent function optimisation}
 \label{fig:RFOarch}
 \end{figure}
-
-Initially it was very unstable, only wanting to search values at the boundaries of the search space. It seemed to be the case that the internal parameters were exploding to massive values and saturating on every pass. So two normalisation hyper parameters were used - the cutoffNorm and the maxOutNorm. The cutoff norm is the maximum L2 norm of all of the gradients of the parameters for all the layers. If the norm exceeds that value, all the gradients are scaled down by the same amount so that the L2 norm for the gradients equals the cutoffNorm. This prevents exploding gradients within the recurrent elements of the network. The maxOutNorm sets the maximum L2 norm of any one layer of the network. Then, like with the cutoffNorm, if the L2 norm for the layer exceeds the maxOutNorm then all of the parameters of that layer are scaled down by the same amount until their L2 norm is that value. This, like weight decay, allows the network to ``forget'' unhelpful learning and also keeps the outputs bounded. Once both of these were applied the agent began to use much more of the space.
-
-Another important trick that significantly improved performance was normalising the inputs to the network. Particularly in the presence of the above parameters, it is necessary to have every input value to the network to be of the same order of magnitude. However, the range of the output of the function isn't known exactly, and its relative magnitude to itself is very important for working out the minimum. The idea that was hit upon to standardise the outputs was to use an approximate upper bound on the output of the function and divide it by that. Because of how the function was defined, the highest order term of the polynomial always has a coefficient of 1 (as any other function could be scaled to be like that anyway). Furthermore, given that the roots are within known bounds, the agent will never ask for $x$ values above those bounds. So if the output of the function approximator is divided by $x_{max}^{p+1}$, where $p$ is the number of parameters used to define the function, then the vast majority of the outputs should lie within the range [$0 - 1$]. Given that actually the agent spends a lot more time within tighter bounds than those, and the other inputs were in the range [$0- x_{max} $] the output was actually divided by $x^p$. This did result in immediate improvement in performance.
-
-Two different forms for the loss function were tried - $Loss(f(\boldsymbol{x}), f(\boldsymbol{x}_{min})) = log(f(\boldsymbol{x}) - f(\boldsymbol{x}_{min} +1))$ and $Loss(f(\boldsymbol{x}), f(\boldsymbol{x}_{min})) = f(\boldsymbol{x}) - f(\boldsymbol{x}_{min})$. The log form was proposed because it was noted that the linear loss produced potentially very large gradients, and there were concerns about stability. However, it seems that the log loss massively slowed learning down, and the agent seemed to stabilize to some policy relatively quickly. This is probably because the ideal loss function curve should be linear with the error for large error, whilst the log term is less than that.
-
-One other variation that was attempted to try and improve the results, based on how the agent in the visual attention paper \cite{RVA} was trained, was to calculate what the reward would be at every step, and use the gradient based on these to train the agent instead. The results are labelled everystep below, and generally seemed to do worse. The key difference seems to be that the output is based on the lowest observed value, rather than its current estimate of the truth at each step, so it ended up producing large penalties for what were potentially reasonable exploratory steps, and so producing more nuisance gradients that drove the policy away from optimality.
-
-The exact setup chosen for the experimentation, in terms of number of layers and location of non-linearities, is detailed in figure~\ref{fig:exactsetup}. Each white rectangle is a fully connected layer with size equal to the variable written on it. 
-\begin{figure}
-\centering
-\input{diagrams/exactsetup}
-\caption{Layerwise setup for all of the RFO agents}
-\label{fig:exactsetup}
-\end{figure}
-
-
-%this whole section needs rewriting STAT
-
-\subsubsection{Experimental Method}
-%need to do this
-
-%how am I using the error rate data?
-
-For the experimentation, the implementation of the agent was ran on a single GPU for 250 epochs, and tested on the test data after each epoch. There were  163840 training examples generated and 20480 test examples. 
-
-There were four main experiments performed: a comparison of the impact of number of hidden units in the network to performance, a comparison between using ReLU and HardTanh for the transfer functions, a comparison of giving the reward at every step or only the first, and comparison of the agent's performance with functions of different dimensions.
-
-Unless otherwise specified, the functions the agent was learning on were a series of 1 dimensional quartics, defined as 1D3P (because it has 3 stationary points). They were all ran with a fixed number of steps, 20, except for with the dimensionality increases, where the number of steps increases by 10 for each additional dimension.
-
-%rephrase this
-Because the initial exploratory experiments seemed to show better performance with a linear reward for all the experiments unless it's said otherwise.
-
-Unless otherwise stated, there was 128 neurons in the RNN, and 64 per layer in the input and location networks. The major exception to this is in the dimension experiments, which were given a larger network of 256 and 128 respectively to allow it more space to be able to learn the complexities of the higher dimensions without significantly harming performance.
-
-\subsubsection{RFO Results}
-In each of the charts, the normalised performance on the set of 20480 test functions is used. So a value of 0 indicates that the agent received the same average reward across the tests set as an agent that simply divides the search space evenly, while a score of 1, marked by the line labelled pattern search, indicates that the agent achieved the same average reward as a pattern search agent on the training data. The aim for this project would be to produce an agent who can produce a normalised score significantly higher than 1. Each chart lists the agents  normalised reward on the test data as a function of training epoch, so that both final result and learning rate can be examined.
-
-
-In figure~\ref{fig:opt1full} the comparison between the agent's performance on the training and the validation data can be seen. Unlike with many supervised learning problems, the two seem well coupled, if both subject to some degree of stochasticity. The final accuracies obtained are somewhat disappointing, though as can be seen in figure~\ref{fig:opt1norm} the error rate at best does reach that of the pattern search agent. Also visible in figure~\ref{fig:opt1norm} is that the performance on the testing and validation data sets are near identical. Due to this, in all further graphs, only the test reward is considered.
-
-For the experiment that changed the number of roots of the testing functions, the relative performance of evenly searching the whole space compared to a pattern search changed dramatically. Because of that, for those experiments a different normalisation was used, which defines the reward on a scale where 0 is the performance of the pattern search agent, and 1 is the perfect result (0 total reward).
-
-\begin{figure}
-\centering
-\input{graphs/opt1-full}
-\input{graphs/opt1-full-norm}
-\caption{RFO learning behaviour and normalised performance across learning}
-\label{fig:opt1norm}
-\end{figure}
-
-%I should probably only use on of the two hyperparam setups
-
-%detail the numbers used in the experiments and explain what the graphs mean - you can do this now
-
-From figure~\ref{fig:locexp} the chronological behaviour of the agent becomes apparent. It checks a spread of locations around the best point observed so far, both those close so that it can get a better value, but also those progressively further away in case there is a better minimum there. Although the behaviour seems slightly random, in the second path it returns to an area that clearly contains points that are worse those it had found, the policy performs very well, consistently getting a normalised score of 1.8, with an test error rate of less than 1\%. Interestingly the agent doesn't seem to be performing any form of gradient based search, but seems to be taking steps in a direction until it decides that that direction is unprofitable.
-
-\emph{there will be data analysis here once I have the data - I'm retaking because I get much better results when I change one of the parameters}
-
-
-%I should present a graph showing how the error rates compare for an agent doing particularly well perhaps
-
-%detail exactly how these experiments were ran. - what was changed, by how much etc.
-\begin{figure}
-\centering
-\input{graphs/demopoints}
-\caption{Points checked by the agent and their return values}
-\label{fig:locexp}
-\end{figure}
-
-\begin{figure}
-\centering
-\input{graphs/Exp1-sizes-long}
-\caption{Comparison of Agent learning for different hidden sizes}
-\label{fig:exp1rfo}
-\end{figure}
-
-\begin{figure}
-\centering
-\input{graphs/Exp3-transfers}
-\caption{Comparison of Agent learning for different reward schemes and transfer functions}
-\label{fig:exp3rfo}
-\end{figure}
-
-\begin{figure}
-\centering
-\input{graphs/Exp2-param}
-\caption{Comparison of Agent learning for different order polynomials}
-\label{fig:exp2parrfo}
-\end{figure}
-
-\subsubsection{Issues and Evaluation} %needs more here
-
-%like, a lot more
-
-Two key problems seem to be hampering the behaviour of this agent. One is that it is very easy for it to get stuck in local minima, whereby the local gradient of the policy is zero, but it is not at the optimum policy. Although that can be reduced by having a larger training dataset, it cannot be avoiding within this architecture. This problem is further exacerbated by the fact that there is nothing guiding the formation of the internal state except for the reinforce, which means that potentially it isn't retaining various pieces of salient information that would allow it to make better decisions.
-
-It should be noted that in general recurrent neural networks are particularly susceptible to local minima, as they produce chaotic responses to changes in the error surface\cite{Cuéllar2006}, and this was particularly apparent during testing, where sometimes the agent would simply fail to find anything useful during training. %give example if you have one
-
-It was found out during the first round of experimentation that the early stopping value was probably too low, as the agent would spend a long time with a low reward that wasn't changing very much until suddenly it would burst forth with a large improvement, and the tight early stopping boundary was preventing larger networks from being able to reach that point.
-
-That all said, the agent does manage to learn a policy that consistently outperforms the pattern search with several of the networks in figure~\ref{fig:exp1rfo}, and as the number of dimensions increases, %we'll find out.
 
 \begin{figure}
 \centering
@@ -218,31 +115,113 @@ That all said, the agent does manage to learn a policy that consistently outperf
  \label{alg:rfo}
 \end{figure}
 
+Initially it was very unstable, only wanting to search values at the boundaries of the search space. It seemed to be the case that the internal parameters were exploding to massive values and saturating on every pass. So two normalisation hyper parameters were used - the cutoffNorm and the maxOutNorm. The cutoff norm is the maximum L2 norm of all of the gradients of the parameters for all the layers. If the norm exceeds that value, all the gradients are scaled down by the same amount so that the L2 norm for the gradients equals the cutoffNorm. This prevents exploding gradients within the recurrent elements of the network. The maxOutNorm sets the maximum L2 norm of any one layer of the network. Then, like with the cutoffNorm, if the L2 norm for the layer exceeds the maxOutNorm then all of the parameters of that layer are scaled down by the same amount until their L2 norm is that value. This, like weight decay, allows the network to ``forget'' unhelpful learning and also keeps the outputs bounded. Once both of these were applied the agent began to use much more of the space.
+
+Another important trick that significantly improved performance was normalising the inputs to the network. Particularly in the presence of the above parameters, it is necessary to have every input value to the network to be of the same order of magnitude. However, the range of the output of the function isn't known exactly, and its relative magnitude to itself is very important for working out the minimum. The idea that was hit upon to standardise the outputs was to use an approximate upper bound on the output of the function and divide it by that. Because of how the function was defined, the highest order term of the polynomial always has a coefficient of 1 (as any other function could be scaled to be like that anyway). Furthermore, given that the roots are within known bounds, the agent will never ask for $x$ values above those bounds. So if the output of the function approximator is divided by $x_{max}^{p+1}$, where $p$ is the number of parameters used to define the function, then the vast majority of the outputs should lie within the range [$0 - 1$]. Given that actually the agent spends a lot more time within tighter bounds than those, and the other inputs were in the range [$0- x_{max} $] the output was actually divided by $x^p$. This did result in immediate improvement in performance.
+
+Two different forms for the loss function were tried - $Loss(f(\boldsymbol{x}), f(\boldsymbol{x}_{min})) = log(f(\boldsymbol{x}) - f(\boldsymbol{x}_{min} +1))$ and $Loss(f(\boldsymbol{x}), f(\boldsymbol{x}_{min})) = f(\boldsymbol{x}) - f(\boldsymbol{x}_{min})$. The log form was proposed because it was noted that the linear loss produced potentially very large gradients, and there were concerns about stability. However, given more iterations the linear loss proved to reach good results as well.
+
+One other variation that was attempted to try and improve the results, based on how the agent in the visual attention paper \cite{RVA} was trained, was to calculate what the reward would be at every step, and use the gradient based on these to train the agent instead. The results are labelled everystep below, and generally seemed to do worse. The key difference seems to be that the output is based on the lowest observed value, rather than its current estimate of the truth at each step, so it ended up producing large penalties for what were potentially reasonable exploratory steps, and so producing more nuisance gradients that drove the policy away from optimality.
+
+The exact setup chosen for the experimentation, in terms of number of layers and location of non-linearities, is detailed in figure~\ref{fig:exactsetup}. Each white rectangle is a fully connected layer with size equal to the variable written on it. 
+\begin{figure}
+\centering
+\input{diagrams/exactsetup}
+\caption{Layerwise setup for all of the RFO agents}
+\label{fig:exactsetup}
+\end{figure}
+
+
+\subsubsection{Experimental Method}
+There were four main experiments performed: a comparison of the impact of number of hidden units in the network to performance, a comparison between using ReLU and HardTanh for the transfer functions and with different reward schemes, a comparison of the agent's performance on higher order polynomials, and a comparison of the agent's performance with functions of different dimensions.
+
+As can be seen in figure~\ref{fig:opt1norm}, the agent's performance on the validation data is noisier than it's performance on the training data, but they do track each other quite closely in general. It can also been clearly seen that the performance on the testing and validation data sets are near identical. Furthermore, although there are important differences in what the data shows, the error rate and the reward show similar enough behaviour that, in the interests of space, for all further graphs only the agent's normalised test reward data will be shown. If the agent performing well, then it would have a normalised reward somewhat larger than 1, indicating that it is performing significantly better than the pattern search agent.
+
+
+%this bit explains why we only consider the test reward and don't concern ourselves too much with the error rate - it was mostly useful in development
+\begin{figure}
+\centering
+\input{graphs/opt1-full}
+\input{graphs/opt1-full-norm}
+\caption{RFO learning behaviour and normalised performance across learning}
+\label{fig:opt1norm}
+\end{figure}
+
+The implementation of the agent was ran on a single GPU for 250 epochs, and tested on the test data after each epoch. There were  163840 training examples generated and 20480 test examples. To simplify the search space for network sizes, the input and output sizes were always set to half the hidden size. The agent was given a linear reward only at the last step for all the experiments except the one comparing reward schemes.
+
+\subsubsection{RFO Results}
+%state the hyperparameters along with the intro for each experiment
+\begin{figure}
+\centering
+\input{graphs/Exp1-sizes-long}
+\caption{Comparison of Agent learning for different hidden sizes}
+\label{fig:exp1rfo}
+\end{figure}
+In figure~\ref{fig:exp1rfo} the test performance for the agent given different hidden sizes is detailed. The transfer function was HardTanh, the agent had 20 steps to find the minimum in, the function was a one dimensional quartic, and the rewards were linear and given at episode termination. Every single network size managed to produced a policy that exceeded the performance of the pattern search agent, though the networks with 128 and 256 hidden neurons produced the highest final reward. As the networks get larger, it takes the agent longer to find the initial jump in performance, which the small networks make within the first epoch or so. This jump is probably the agent learning some initial useful representation of state, which then allows it to learn how to make better decisions. For expediency and peak performance, a hidden size of 128 was chosen to be the norm for other experiments.
+
+\begin{figure}
+\centering
+\input{graphs/Exp3-transfers}
+\caption{Comparison of Agent learning for different reward schemes and transfer functions}
+\label{fig:exp3rfo}
+\end{figure}
+
+In figure~\ref{fig:exp3rfo} the agent's performance with different reward schemes and transfer functions is detailed. The hidden size was 128 neurons, the agent had 20 steps to find the minimum in, and the function was a one dimensional quartic.  What is immediately apparent is that, except with a logarithmic reward scheme, the agent is unstable if it uses a ReLU transfer function. This is probably due to the effect noted when the log reward was devised: that large errors produce very large gradients, which would then dominate the learning and harm convergence. This is far more true for ReLU, which passes large positive values unhampered, than with HardTanh, which cuts off both very high and very low values. Even with the log reward, the HardTanh function produced better peak performance, though interestingly less stably. There could be an argument to use logarithmic rewards along with ReLU based on the apparent relative stability here, however it was decided that better peak performance was preferable here. With HardTanh, log rewards produced similar looking performance,with slightly lower peak values. However the comparison isn't quite fair, as with the same improvement in locations the difference in the log rewards will be less than the difference of the linear rewards ($\log b - \log a < b - a, 1 < a < b $). Telling the agent what reward to receive at each step proved counterproductive, probably because it then put a penalty on every action that didn't improve the observed minimum value, which hampers exploration and muddies learning, as it largely rewards the agent for being lucky with the first few values it observed, rather than behaving optimally.
+
+\begin{figure}
+\centering
+\input{graphs/Exp2-param}
+\caption{Comparison of Agent learning for different order polynomials}
+\label{fig:exp2parrfo}
+\end{figure}
+
+In figure~\ref{fig:exp2parrfo} the agent's performance on polynomials of increasing order is detailed (2 minima - quartic, 3 minima $x^6$ etc). The transfer function was HardTanh, the agent had 20 steps to find the minimum in, the hidden size was 128 neurons, and the rewards were linear and given at episode termination.  The relative performance of evenly searching the whole space compared to a pattern search changed dramatically as the order increased. Because of that, for this experiment a different normalisation was used, which defines the reward on a scale where 0 is the performance of the pattern search agent, and 1 is the perfect result (0 total reward). It should be noted that the agent attained similar results after the first epoch for each test, but as the order increased, the pattern search agent did worse, so the RFO agent did relatively better. The system consistently outperforms the pattern search, arriving to around 0.85 in this normalisation in each case. This means that the agent's absolute performance does decrease as the order increases, but at 15\% of the rate at which pattern search falls off. It should also be noted that for very high order polynomials it is actually quite likely that several of the minima are quite close in value to the global one, improving the chances of the agent attaining a positive reward quickly.
+
+
+%detail the numbers used in the experiments and explain what the graphs mean - you can do this now
+
+%detail exactly how these experiments were ran. - what was changed, by how much etc.
+
+
+\subsubsection{Issues and Evaluation}
+
+In figure~\ref{fig:locexp} the points that the agent checks as it moves through one episode are detailed. Notably there seems to be some combination of exploration and exploitation going on, with the agent hanging close to good values it's observed, whilst also choosing to go right across the range of possible values. It isn't performing some form of gradient step or anything else so intuitive, but it does seem to be stepping in direction for some reason. What exactly is going on would probably require detailed analysis of the neurons within this network, but in any case the results are clear enough - this agent attained a normalised score of 1.8 with an error rate of $<$1\%. 
+
+\begin{figure}
+\centering
+\input{graphs/demopoints}
+\caption{Points checked by the agent and their return values}
+\label{fig:locexp}
+\end{figure}
+
+Overall, from the learning charts it can be noted that the learning is far from smooth, and, at least within the limited number of epochs given, not strictly convergent. This will partially be a product of reinforcement learning, but also due to the use of REINFORCE to train a deterministic policy - the method expects every step the agent takes to be stochastic, whilst with these experiments the noise was only added for the training. For all cases where the agent learned anything there are several large jumps in the agents performance, often after a long plateau of similar performance. These jumps are probably due to the agent learning some representational change that allowed it to improve it's behaviour suddenly, as the agent is learning not only how to make good decisions based on the state, but also how to represent this state to itself. These jumps mean that early stopping is not a good method to use with these networks, as important learning may be occurring without immediate change in received reward.
+
+Ideally these jumps could be avoided by starting the agent off in a better area of the search space, and the performance with larger networks would certainly benefit from escaping from more of the local minima that such networks are naturally susceptible to. So whilst the agent's performance so far has been promising, the hope would be to do even better.
+
 \subsection{Apprenticed RFO}
 
 %discuss how fair the number of RL steps given is or otherwise
 
 %Why don't they converge to the pattern reward?
 
-One suggestion to improve the performance, based on the work in Mastering the game of Go with deep neural networks and tree search\cite{alphaGo}, was to train the agent to first replicate ``expert'' output, then further improve the policy using reinforcement learning as before. The idea is that by first moving to a space where it is making good actions already, it would escape local minima and have a more defined manner in which it would learn to define the state space. The first key challenge with this is to choose what sort of agent it should learn from. Initially it was proposed to get it to learn from a simplex agent, but the implementations of simplex agents within the systems constraints were found to be consistently outperformed by the pattern search agent. So it was decided to use the pattern search agent instead.
+One suggestion to improve the performance, based on the work in Mastering the game of Go with deep neural networks and tree search\cite{alphaGo}, was to train the agent to first replicate ``expert'' output, then further improve the policy using reinforcement learning as before. The idea is that by first moving to a space where it is making good actions already, it would escape local minima and have a more defined manner in which it would learn to define the state space. The first key challenge with this is to choose what sort of agent it should learn from. Initially it was proposed to get it to learn from a simplex agent, but the implementations of simplex agents within the systems constraints were found to be consistently outperformed by the pattern search agent. So it was decided to use the pattern search agent instead. Ideally the agent would be trained by a Bayesian optimiser, but sadly time constraints prevented this from happening.
 
 One possible advantage of this set up for training the agent is that it makes training the agent for an expensive task without a decent model for it a lot easier. Instead of either training the agent directly on the expensive task, which would take a very long time and lots of computation, instead output data from previously used optimisers could be used to train the agent along with some loose approximation based on the data from those, which should reduce how much computational time the agent has to spend on ``live'' examples.
 
-For each training function the agent produced an output, and in parallel the pattern search agent produced its own output. Mean squared error loss was used to produce the gradient, where the error was defined as the difference between the output of the agent for that step and the pattern searcher.
-
-In order for it to produce adequate output to match the performance of the tutor, a number of hyper parameters had to be adjusted as well, which was useful for tuning the hyper parameters for the less well defined straight RL case.
+The agent was trained as follows. For each training function the agent produced an output, and in parallel the pattern search agent produced its own output. Mean squared error loss was used to produce the gradient, where the error was defined as the difference between the output of the agent for that step and the pattern searcher. The agent was trained with this for 125 epochs. Then the same networks were trained using reinforcement learning as with the RFo agent for a further 125 epochs.
 
 \subsubsection{Apprenticed RFO results}
-The same set of experiments was ran with the apprenticed RFO as with the pure reinforcement learned agent. %compare both how well it does internally, and to RFO
+The same set of experiments with the same parameters was ran with the apprenticed RFO as with the pure reinforcement learning agent. %compare both how well it does internally, and to RFO
 The graphs are normalised in the same way, and the pattern search level is again indicated. Additionally, the step where the apprenticeship was turned off and the agent swapped to reinforcement learning is marked on each chart with a dot at that point.
 
-\emph{there will be data analysis here once I have the data}
 \begin{figure}
 \centering
 \input{graphs/Exp1-sizes-long-app}
 \caption{Comparison of Apprenticed RFO learning for different hidden sizes}
 \label{fig:exp1apprfo}
 \end{figure}
+
+Figure~\ref{fig:exp1apprfo} details the normalised reward the apprenticed agent received for different sizes of network. The transfer function was HardTanh, the agent had 20 steps to find the minimum in, the function was a one dimensional quartic, and the rewards were linear and given at episode termination. Of immediate note is that, except for the 16 neuron network, by the end of the apprenticeship every network had converged to a policy that performed at roughly 0 reward, or as well as dividing the search space up evenly. They also all arrived there in very similar manners, as one might expect from a set of sufficiently large networks with regularisation. The response after the reinforcement learning starts is interesting - all networks with 128 or more neurons make this characteristic jump to a policy in region of 2 relative reward before falling away and descending into seemingly chaotic behaviour. The networks with less neurons fail to make such a jump, but also then are less chaotic. Again a network with 128 neurons seems to produce the best result, though less stably.
 
 \begin{figure}
 \centering
@@ -251,6 +230,8 @@ The graphs are normalised in the same way, and the pattern search level is again
 \label{fig:exp3app}
 \end{figure}
 
+Figure~\ref{fig:exp3app} details the agents performance with different reward schemes and transfer functions. The hidden size was 128 neurons, the agent had 20 steps to find the minimum in, and the function was a one dimensional quartic. Again ReLU without log rewards is a flop, being unstable even in the apprenticed behaviour, though again the log rewards produce the most stable looking output. This may also just be a product of the log rewards being kinder on errors, as can be seen by it's apparent better performance during apprenticeship, even though during apprenticeship the only variable that matters is the transfer function. Here giving a linear reward at every step with HardTanh looks less terrible, perhaps because the agent was already taking sensible initial actions, so the harm that does to initial actions was lessened. In any case, this data shows the key benefit of the apprenticeship - even in set-ups more susceptible to local minima and instability, by starting the reinforcement learning in a better region it stayed in a better region.
+
 \begin{figure}
 \centering
 \input{graphs/Exp2-param-app}
@@ -258,18 +239,20 @@ The graphs are normalised in the same way, and the pattern search level is again
 \label{fig:exp2parapp}
 \end{figure}
 
-%
-%\begin{figure}
-%\centering
-%\input{graphs/Exp1-sizes-app-newp}
-%\caption{Comparison of Apprenticed RFO learning for different hidden sizes with new parameters}
-%\label{fig:exp1apprfo}
-%\end{figure}
+Figure~\ref{fig:exp2parapp} shows how the apprenticed agent performs on polynomials of increasing order. The transfer function was HardTanh, the agent had 20 steps to find the minimum in, the hidden size was 128 neurons, and the rewards were linear and given at episode termination. Again, because the pattern search agent's performance compared to blindly searching the space changes with polynomial order, the score is normalised on a scale where 0 is the pattern search agent's reward and 1 is zero total reward. There is again the characteristic bounce just as it starts reinforcement learning, but for higher order polynomials the agent recovers to a policy better than the pattern search faster and more smoothly, probably due to the plurality of ``good'' minima available.
+
 
 \subsubsection{Issues and Evaluation}
- However, there are several unusual trends worth pointing out. For larger networks, it seems that the actual rewards received during apprenticeship actually decreased as it went along, though it is worth remembering that the reward is not the parameter it was learning to optimise during that stage. This is probably because with the larger networks the initial pass produces something that spreads out quite evenly across the space, then it learns to focus in, but tends to over fit, resulting in poor rewards.
 
-The other interesting trend is the agent learned to produce something similar to the output after a reasonable number of iterations, at which point it was achieving only slightly worse scores than the pattern search. Then when it was switched to reinforcement learning it produced a temporary drop in performance, followed by a significant improvement, exceeding that of the pure RL agent. However this result seems to be unstable, as upon further iterations it produces decaying performance. The improvement in performance of the agent after the initial batch could be attributed to it learning to explore better, as in all the cases the function used was non-convex, so the pattern search will often end up in the worse of the two minima.
+\begin{figure}
+\includegraphics[width = 0.5\textwidth]{pictures/tutorbehav.png} 
+\includegraphics[width = 0.5\textwidth]{pictures/pupilbehav.png}
+\caption{Points explored by pattern search agent and apprenticed RFO during apprenticeship}
+\label{fig:appbehav}
+\end{figure}
+One of the key points of interest to look at are that the agent, although it is trained by the pattern search agent, only manages to attain a similar reward to blindly dividing the space into equal chunks. As can be seen in figure~\ref{fig:appbehav}, which is a snapshot taken just before the reinforcement learning starts of three of the episodes, the agent's behaviour is very similar to the pattern search one. In fact, the apprenticed agent gets a normalised error rate pretty close to 1, so it is checking the same minima as the pattern search agent with a similar idea. But unlike the pattern search agent, the apprentice spends a bunch more checks coming down the sides of minima, with a much more even step size, so it doesn't drill down to the absolute minimum value as well. This means that, whilst it makes the same mistakes as the pattern search agent, it additionally gets worse rewards than the pattern search agent does when it is right because it doesn't get as close to the minima. 
+
+The second question is why does it make that bounce as it starts reinforcement learning. The answer is probably that most of it's learning at this point comes from the cases where the pattern search agent does badly, as it does reasonably well on the rest. So initially it learns to explore a bit more so that it can get to those points. It does so, whilst still largely imitating the pattern search agent, and so it gets a reasonable score on most of the cases, resulting in normalised score somewhat above 1. However it is still getting gradients because it isn't making the perfect score. As it applies these changes, it makes some representational change that actually leads to a significant decrease in performance. If left to continue learning for a while, it may reach a different policy, or it may converge to the same policy as the pure RL agent did, depending on the shape of the error surface. However that would take more computational steps than just running the RL, so unless that unknown future policy is even better than just running RL for that long, it doesn't seem worth it.
 
 \begin{table}[hbtp]
 \centering
@@ -285,28 +268,26 @@ Hidden Size & RFO & Apprenticed \\
 1024 & 1.58 & 1.88 \\
 
 \end{tabular}
-\begin{tabular}{c c | cc}
-\multicolumn{2}{c}{Reward scheme}  & & \\
-Function & When  & RFO & Apprenticed \\
-\hline
-Linear & End & 2.66 & 2.40 \\
-Linear & Every step & 0.001 & 2.04 \\
-Log & End & 1.91 & 1.16\\
-Log & Every step & -9.51 & 1.08 \\
-
-\end{tabular}
-
-
-%These values are scaled so that 0 is the pattern reward and 1 is the best reward possible.
-%\begin{tabular}{r | cc}
-%Number of minima & RFO & Apprenticed \\
+%\begin{tabular}{c c | cc}
+%\multicolumn{2}{c}{Reward scheme}  & & \\
+%Function & When  & RFO & Apprenticed \\
 %\hline
-%2 & 0.70 & 0.66 \\
-%3 & 0.85 &  0.64 \\
-%4 &0.83  & 0.80 \\
-%5 & 0.84 & 0.72 \\
+%Linear & End & 2.66 & 2.40 \\
+%Linear & Every step & 0.001 & 2.04 \\
+%Log & End & 1.91 & 1.16\\
+%Log & Every step & -9.51 & 1.08 \\
 %
 %\end{tabular}
+%These values are scaled so that 0 is the pattern reward and 1 is the best reward possible.
+\begin{tabular}{r | cc}
+No. minima & RFO & Apprenticed \\
+\hline
+2 & 0.70 & 0.66 \\
+3 & 0.85 &  0.64 \\
+4 &0.83  & 0.80 \\
+5 & 0.84 & 0.72 \\
+
+\end{tabular}
 
 %need more tables here for the other experiments 
 
@@ -315,11 +296,11 @@ Log & Every step & -9.51 & 1.08 \\
 
 \end{table}
 
-As can be seen in table~\ref{tab:compare}
+Suppose then that what is desired is for the best agent to be produced in a minimum of steps, and taking the networks from the peak of the bounce is seen as acceptable. The peak normalised rewards each network produced can be seen in table~\ref{tab:compare}. For the same total number of epochs of training, the pure RL agent consistently outperforms the apprenticed agent except with the network with 1024 hidden units. Given that the RL got slower as network size increased, whilst the apprenticed part of the training stayed at the same rate, it can be extrapolated that the apprenticed RFO is better once the RL is that slow or worse. From the shape of the graphs, it would probably be preferable in any implementation using the apprenticeship to end the apprenticeship at 80 epochs rather than 125 so that the subsequent RL has more time to converge.
 
 \subsection{Deterministic RFO}
 \label{sec:detrfo}
-Given that the environment is both stochastic and non-adversarial, the optimal policy for the agent should be deterministic. So REINFORCE can only ever asymptotically converge to the optimal policy, and given the actual implementation, not even that. So the methods described in Continuous control with deep reinforcement learning\cite{lillicrap2015continuous} ought to be able to produce better performance. A deterministic actor critic agent was created, within the same code structure as the REINFORCE agents, but this one is, in theory, off policy. The total structure of the agent is detailed in figure~\ref{fig:detrfo}. The key additions are the critic networks, which consist of both an RNN that produces an observation of the state, that is the series of value-coordinate pairs so far observed, and the Q-network, which estimates the value of that state.
+Given that the environment is both deterministic and non-adversarial, the optimal policy for the agent should be deterministic. So REINFORCE can only ever asymptotically converge to the optimal policy, and given the actual implementation, not even that. So the methods described in Continuous control with deep reinforcement learning\cite{lillicrap2015continuous} ought to be able to produce better performance. A deterministic actor critic agent was created, within the same code structure as the REINFORCE agents, but this one is, in theory, off policy. The total structure of the agent is detailed in figure~\ref{fig:detrfo}. The key additions are the critic networks, which consist of both an RNN that produces an observation of the state, that is the series of value-coordinate pairs so far observed, and the Q-network, which estimates the value of that state.
 \begin{figure}
 \centering
 \input{diagrams/QLearnArch}
@@ -327,7 +308,7 @@ Given that the environment is both stochastic and non-adversarial, the optimal p
 \label{fig:detrfo}
 \end{figure}
 
-So far the learning with this has been much slower, though more stable than that with REINFORCE, it seems to also get stuck in an unprofitable local minima really easily, as can be seen in figure~\ref{fig:detpolgrad}. Given more time, the next step would be to find the hyperparameter setup that gives it the fastest learning rate whilst continuing being stable and running it with the apprenticeship method to get it away from the worse of the local minima. With the apprenticeship method, the network would be trained by error compared to the tutor whilst the critic learns from the experiences as well so that both are well initialised when it switches to reinforcement learning. However time constraints prevent this from happening.
+So far the learning with this has been much slower, though more stable than that with REINFORCE, it seems to also get stuck in an unprofitable local minima really easily, as can be seen in figure~\ref{fig:detpolgrad}. It should be noted, however, that it was continuing to improve the policy along that line, just really slowly, which either means its converging into some minima or it's about to jump in a similar manner as with the RFO agent, but at epoch 3000 rather than 30. Given more time, the next step would be to find the hyperparameter set up that gives it the fastest learning rate whilst continuing being stable and running it with the apprenticeship method to get it away from the worse of the local minima.  With the apprenticeship method, the network would be trained by error compared to the tutor whilst the critic learns from the experiences as well so that both are well initialised when it switches to reinforcement learning. Given how slowly it was learning there, the apprenticeship method should significantly save time. However time constraints prevent this from being done within the scope of this project.
 
 \begin{figure}
 \centering
