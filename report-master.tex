@@ -2,9 +2,9 @@
 %this will contain \input for each of the sections, and all the general formatting.
 %this will need editing if additional packages are used
 
-\documentclass[twoside,12pt]{article}
-%\usepackage{helvet}
-%\renewcommand{\familydefault}{\sfdefault}
+\documentclass[twoside,11pt]{article}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
 %\usepackage[T1]{fontenc}
 
 \renewcommand{\baselinestretch}{1.5}
@@ -375,6 +375,7 @@
   \addcontentsline{toc}{section}{\protect\numberline{\thesection}#1}%
   \sectionmark{#1}}
 
+\sloppy %so that lines are nicer, weirdly
 
 \title{Report for 4YP Project: \\ Gaming AI}
 \author{Stephen Lilico}

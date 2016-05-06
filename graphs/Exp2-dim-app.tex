@@ -12,9 +12,9 @@
     %grid style=dashed,
 ]
   \draw [color = black] (axis cs: -40,1) to node [very near start, above] {\footnotesize{pattern reward}} (axis cs:900,1);
-\addplot [mark=none, color = blue] table [ x = epoch, y= norm test rew, col sep=comma] {graphs/exp2/opt1dimit1.csv};
-\addplot [mark=none, color = red] table [ x = epoch, y=norm test rew, col sep=comma] {graphs/exp2/opt1dimit2.csv};
-\addplot [ mark=none,color = green] table [x = epoch, y=norm test rew, col sep=comma] {graphs/exp2/opt1dimit3.csv};
+\addplot [mark = *, mark one*=400, color = blue] table [ x = epoch, y= norm test rew, col sep=comma] {graphs/exp2/opt2-dimit1-long.csv};
+\addplot [mark = *, mark one*=400, color = red] table [ x = epoch, y=norm test rew, col sep=comma] {graphs/exp2/opt2-dimit2-long.csv};
+\addplot [ mark = *, mark one*=400,color = green] table [x = epoch, y=norm test rew, col sep=comma] {graphs/exp2/opt2-dimit3-long.csv};
   \legend{1,2,3}
 \end{axis}
 \end{tikzpicture}

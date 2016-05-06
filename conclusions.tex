@@ -13,8 +13,8 @@ Concerning creating an AI to play card games, this project made the following di
 Concerning using Reinforcement Learning to train a  neural network to optimise general functions, given that the optimum lies within known bounds, it was found that:
 \begin{itemize}
 \item Pure reinforcement learning is sufficient to train a recurrent network to sufficiently represent the state consisting of all previous location-value pairs observed
-\item Training the agent to replicate ``expert'' output prior to starting reinforcement learning removes the need to wait for the sudden jump in performance of the agent observed with pure reinforcement learning, but it doesn't improve convergence time. This is probably because the desirable policy for the agent is very different from the desirable policy to replicate the tutor with. It probably is only useful in cases where the learning is very slow.
-\item Learned stochastic policies are able to out-perform simple pattern search agents on non-convex polynomial functions.
+\item Training the agent to replicate ``expert'' output prior to starting reinforcement learning removes the need to wait for the sudden jump in performance of the agent observed with pure reinforcement learning, but it doesn't improve convergence time. This is probably because the desirable policy for the agent is very different from the desirable policy to replicate the tutor with. It's usefulness appears to improve with function dimension.
+\item Learned stochastic policies are able to out-perform simple pattern search agents on non-convex polynomial functions but not on convex ones.
 \end{itemize}
 Further analysis has to be done concerning the convergence for the learning for such algorithms, but if the snapshot of the network that performed the best on a sufficiently large test data is used, it seems that it is likely to perform well. It is unclear whether the good performance obtained would be replicable in situations where the location of the minimum isn't strictly bounded.
 
@@ -24,5 +24,7 @@ There are a number of areas in which this project could be advanced. One, much l
 Another obvious area for improvement would be to modify the deterministic Actor Critic agent for this system so that it actually learns, applying many of the ideas laid out at the end of section~\ref{sec:detrfo}. This may also require significantly more computational power to be made available to the system, or perhaps some form of the parallel learning described in Asynchronous Methods for Deep Reinforcement Learning \cite{mnih2016asynchronous}, which looks like it could allow for such learning to be reasonably performed on a high end CPU.
 
 Another clear oversight of this paper, due to a lack of available time, is the absence of any comparison to the industry standard Bayesian optimisers. This is probably the most urgent next step, that of creating Bayesian optimisation agent that can be both used for comparison and for tutoring the apprenticed learner a better policy. The impact for the apprenticed learner is likely to be particularly strong, as unlike with the pattern search, the Bayesian optimiser won't be drawn just into exploiting some local minima, but is much better behaved in terms of exploring other likely locations and reasonably reducing the likelihood of it not finding anything.
+
+%Should I talk about analysing the impact of taking different numbers of steps
 
 One further area to explore would be to test the agent on more advanced functions than just polynomials, for example by checking its performance on the Rosenbrock function or similar, or indeed simply to explore for minima where the location is unbounded.
